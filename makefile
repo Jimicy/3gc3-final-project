@@ -18,7 +18,7 @@ ifeq "$(OS)" "Windows_NT"
 	EXEEXT=.exe #on windows applications must have .exe extension
 	RM=del #rm command for windows powershell
     LDFLAGS = -lfreeglut -lglu32 -lopengl32 -L./ -lfreeimage
-		FI=
+	FI=
 else
 	# OS X
 	OS := $(shell uname)
@@ -39,7 +39,7 @@ run: $(PROGRAM_NAME)
 #ie. boilerplateClass.o and yourFile.o
 #make will automatically know that the objectfile needs to be compiled
 #form a cpp source file and find it itself :)
-$(PROGRAM_NAME): main.o node.o nodeGroup.o nodeModel.o nodeTransform.o sceneGraph.o BoundedBox.o ray.o $(MATH_LIB)/PVector.o $(MATH_LIB)/PPoint.o $(FI)
+$(PROGRAM_NAME): main.o BoundedBox.o ray.o $(MATH_LIB)/PVector.o $(MATH_LIB)/PPoint.o $(FI)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
 clean:
