@@ -38,18 +38,18 @@ ShapeControl shapeControl = SCENE;
 /* LIGHTING */
 float light_pos0 [3] = {0, 3, 3};
 float amb0[4]  = {1, 1, 1, 1};
-float diff0[4] = {0, 0, 0, 1};
+float diff0[4] = {0.2f, 0.2f, 0.2f, 1};
 float spec0[4] = {1, 1, 1, 1};
 
 float light_pos1 [3] =  {3 , 3, 0};
 float amb1[4]  = {1, 1, 1, 1};
-float diff1[4] = {0, 0, 0, 1};
+float diff1[4] = {0.2f, 0.2f, 0.2f, 1};
 float spec1[4] = {1, 1, 1, 1};
 
 /* MATERIALS */
-float m_amb[3] = {0.05375, 0.05, 0.06625};
-float m_diff[3] = {0.18275, 0.17, 0.22525};
-float m_spec[3] = {0.332741, 0.328634, 0.346435};
+float m_amb[3] = {0.05375f, 0.05f, 0.06625f};
+float m_diff[3] = {0.18275f, 0.17, 1};
+float m_spec[3] = {0.332741f, 0.328634f, 0.346435f};
 float shiny = 0.3f;
 
 //node ids
@@ -223,25 +223,10 @@ void initGraph() {
 // 	glutPostRedisplay();
 // }
 
-void drawAxis()
-{
-	glDisable(GL_LIGHTING);
-	glBegin(GL_LINES);
-	glColor3f(0, 0, 0);
-	glVertex3f(0,0,0);
-	glVertex3f(500,0,0);
-	glVertex3f(0,0,0);
-	glVertex3f(0,500,0);
-	glVertex3f(0,0,0);
-	glVertex3f(0,0,500);
-	glEnd();
-	glEnable(GL_LIGHTING);
-}
-
 void drawLight()
 {
 	glDisable(GL_LIGHTING);
-	glColor3f(1.0f, 0.0f, 1.0f);
+	glColor4f(1.0f, 0.0f, 1.0f, 1.0F);
 
 	glPushMatrix();
 	glTranslatef(light_pos0[0], light_pos0[1], light_pos0[2]);
@@ -460,7 +445,7 @@ void mouse(int button, int state, int x, int y)
 	}
 }
 
-void init(void)
+void init()
 {
 	 /* LIGHTING */
 	glEnable(GL_LIGHTING);
@@ -469,11 +454,19 @@ void init(void)
 
 	GLuint id = 1;
 
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+  glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
 	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
 	glEnable(GL_TEXTURE_2D);
 
-	glClearColor(0.934, 0.898, 0.211, 1);
-	glColor3f(1, 1, 1);
+	glEnable(GL_BLEND);
+  glBlendFunc (GL_ONE, GL_ONE);
+
+	glClearColor(0, 0, 0, 0);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -538,6 +531,11 @@ void loadTextures() {
 void drawGlobe() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glCallList(mysphereID);
+
+	glTranslatef(1,0,0);
+	float diff[] = {0.5, 0.5, 0.5, 0.2};
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
+	glutSolidSphere(0.5, 20, 20);
 }
 
 
@@ -558,22 +556,21 @@ void display(void)
 	glRotatef(-xyzRotation[2],0,0,1);
 
 	glLightfv(GL_LIGHT0, GL_POSITION, light_pos0);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, amb0);
+  glLightfv(GL_LIGHT0, GL_AMBIENT, amb0);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, diff0);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, spec0);
 
 	glLightfv(GL_LIGHT1, GL_POSITION, light_pos1);
-    glLightfv(GL_LIGHT1, GL_AMBIENT, amb1);
+  glLightfv(GL_LIGHT1, GL_AMBIENT, amb1);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, diff1);
 	glLightfv(GL_LIGHT1, GL_SPECULAR, spec1);
 
 	 /* MATERIALS */
-  	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,  m_amb);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,  m_amb);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  m_diff);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  m_spec);
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS,  shiny);
 
-	drawAxis();
 	drawLight();
 
 	drawGlobe();
