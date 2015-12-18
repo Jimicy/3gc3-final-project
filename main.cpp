@@ -12,6 +12,7 @@
 #include "BoundedBox.h"
 #include "FreeImage.h"
 #include "ray.h"
+ #include "Camera.h"
 
 /* Rotations on the 3 axes */
 float xyzRotation[] = {-11, 40, 0};
@@ -34,6 +35,8 @@ enum LightControl {LIGHT0, LIGHT1};
 LightControl lightControl = LIGHT0;
 enum ShapeControl {SHAPES, SCENE};
 ShapeControl shapeControl = SCENE;
+
+Camera *cam1;
 
 /* LIGHTING */
 float light_pos0 [3] = {0, 3, 3};
@@ -313,43 +316,24 @@ void keyboard(unsigned char key, int x, int y)
 
 	/*CAMERA CONTROL AND SHAPE CONTROL*/
 	/*WASD+Space+z to control the camera*/
-	else if (key == 'w')
-	{
-		if (shapeControl == SCENE)
-		{
-			moveCamera(forward, cameraSpeed);
-		}
-	} else if (key == 'a')
-	{
-		if (shapeControl == SCENE)
-		{
-			moveCamera(left, cameraSpeed);
-		}
-	} else if (key == 's')
-	{
-		if (shapeControl == SCENE)
-		{
-			moveCamera(back, cameraSpeed);
-		}
-	} else if (key == 'd')
-	{
-		if (shapeControl == SCENE)
-		{
-			moveCamera(right, cameraSpeed);
-		}
+	else if (key == 'w') {
+		moveCamera(forward, cameraSpeed);
+	}
+	else if (key == 'a') {
+		moveCamera(left, cameraSpeed);
+	}
+	else if (key == 's') {
+		moveCamera(back, cameraSpeed);
+	}
+	else if (key == 'd') {
+		moveCamera(right, cameraSpeed);
 		/* Space bar */
-	}  else if (key == 32)
-	{
-		if (shapeControl == SCENE)
-		{
-			moveCamera(up, cameraSpeed);
-		}
-	} else if (key == 'c')
-	{
-		if (shapeControl == SCENE)
-		{
-			moveCamera(down, cameraSpeed);
-		}
+	}
+	else if (key == 32) {
+		moveCamera(up, cameraSpeed);
+	}
+	else if (key == 'c') {
+		moveCamera(down, cameraSpeed);
 	}
 
 	/*Z to toggle between moving light sources */
@@ -452,6 +436,10 @@ void init()
 	glEnable(GL_LIGHT0);
 	glEnable(GL_LIGHT1);
 
+	PVector3f rot(-11, 40, 0);
+	PVector3f pos(0.0f, 0.0f, 15.0f);
+	cam1 = new Camera(pos, rot);
+
 	GLuint id = 1;
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -464,13 +452,9 @@ void init()
 	glEnable(GL_TEXTURE_2D);
 
 	glEnable(GL_BLEND);
-  glBlendFunc (GL_ONE, GL_ONE);
+  glBlendFunc(GL_ONE, GL_ONE);
 
 	glClearColor(0, 0, 0, 0);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(45, 1, 1, 100);
 
 	//initializing our world
 	initGraph();
@@ -578,6 +562,21 @@ void display(void)
 	glutSwapBuffers();
 }
 
+void reshape(GLsizei width, GLsizei height) {
+	if (height == 0) height = 1;
+
+	glMatrixMode(GL_PROJECTION);
+	glViewport(0, 0, width, height);
+	glLoadIdentity();
+
+	float aspect = width * 1.0 / (float)height;
+	float fov = 45.0f;
+	float near = 1.0f;
+	float far = 100.0f;
+
+	gluPerspective(fov, aspect, near, far);
+}
+
 /* main function - program entry point */
 int main(int argc, char** argv)
 {
@@ -595,6 +594,7 @@ int main(int argc, char** argv)
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(special);
 	glutMouseFunc(mouse);
+	glutReshapeFunc(reshape);
 
 	init();
 	loadTextures();
