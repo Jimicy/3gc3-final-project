@@ -11,19 +11,19 @@ CC=g++
 EXEEXT=
 RM=rm -f
 MATH_LIB = PMath
-FI=freeimage.a
+FI=libfreeimage.a
 
 # Windows (cygwin)
 ifeq "$(OS)" "Windows_NT"
 	EXEEXT=.exe #on windows applications must have .exe extension
 	RM=del #rm command for windows powershell
     LDFLAGS = -lfreeglut -lglu32 -lopengl32 -L./ -lfreeimage
-	FI=
+	FI=freeimage.a
 else
 	# OS X
 	OS := $(shell uname)
 	ifeq ($(OS), Darwin)
-	        LDFLAGS = -framework Carbon -framework OpenGL -framework GLUT
+    LDFLAGS = -framework Carbon -framework OpenGL -framework GLUT
 	endif
 endif
 
