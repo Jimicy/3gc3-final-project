@@ -39,7 +39,7 @@ run: $(PROGRAM_NAME)
 #ie. boilerplateClass.o and yourFile.o
 #make will automatically know that the objectfile needs to be compiled
 #form a cpp source file and find it itself :)
-$(PROGRAM_NAME): main.o BoundedBox.o ray.o $(MATH_LIB)/PVector.o $(MATH_LIB)/PPoint.o $(FI)
+$(PROGRAM_NAME): main.o BoundedBox.o ray.o Camera.cpp $(MATH_LIB)/PVector.o $(MATH_LIB)/PPoint.o $(FI)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
 clean:
