@@ -14,15 +14,11 @@ class Camera {
 
 		Camera(PVector3f pos, PVector3f rotation);
 		void look();
+		void lockCamera();
 		void moveCamera(CameraMovement movement);
 		void rotateCamera(CameraMovement rotation);
 
 		PVector3f position, rotation;
-
-	private:
-		PVector3f forward, back;
-		PVector3f up, down;
-		PVector3f left, right;
 };
 
 #endif /* CAMERA_H */
