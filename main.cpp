@@ -12,45 +12,40 @@
 #include "BoundedBox.h"
 #include "FreeImage.h"
 #include "ray.h"
+#include "Camera.h"
+#include "Light.h"
+#include "Material.h"
+#include "Globe.h"
 
-/* Rotations on the 3 axes */
-float xyzRotation[] = {-11, 40, 0};
-
-/* The 6 direction vectors */
-PVector3f forward(0,0,-1);
-PVector3f back = -forward;
-PVector3f up(0,1,0);
-PVector3f down = -up;
-PVector3f left = up * forward;
-PVector3f right = -left;
-
-/* Camera Vector for translations */
-PVector3f cam(0.0f, 0.0f, 15.0f);
-
-const float cameraSpeed = 0.75f;
-const float shapeSpeed = 0.5f;
 
 enum LightControl {LIGHT0, LIGHT1};
 LightControl lightControl = LIGHT0;
 enum ShapeControl {SHAPES, SCENE};
 ShapeControl shapeControl = SCENE;
 
-/* LIGHTING */
-float light_pos0 [3] = {0, 3, 3};
-float amb0[4]  = {1, 1, 1, 1};
-float diff0[4] = {0.2f, 0.2f, 0.2f, 1};
-float spec0[4] = {1, 1, 1, 1};
+/* CAMERA */
+Camera *cam1;
+PVector3f camPosition(0.0f, 0.0f, 25.0f);
+PVector3f camRotation(-15.0f, 0.0f, 0.0f);
 
-float light_pos1 [3] =  {3 , 3, 0};
-float amb1[4]  = {1, 1, 1, 1};
-float diff1[4] = {0.2f, 0.2f, 0.2f, 1};
-float spec1[4] = {1, 1, 1, 1};
+/* LIGHTING */
+Light *light0, *light1, *light2;
+float light_pos0 [3] = {0, 3, 25.0};
+float light_pos1 [3] = {1.0, 6.0, 25.0};
+float light_pos2 [3] = {-1.0, 6.0, 25.0};
+float amb[4]  = {1, 1, 1, 1};
+float diff[4] = {0.2f, 0.2f, 0.2f, 1};
+float spec[4] = {1, 1, 1, 1};
 
 /* MATERIALS */
+Material *material1;
 float m_amb[3] = {0.05375f, 0.05f, 0.06625f};
 float m_diff[3] = {0.18275f, 0.17, 1};
 float m_spec[3] = {0.332741f, 0.328634f, 0.346435f};
 float shiny = 0.3f;
+
+/* EARTH */
+Globe *earth;
 
 //node ids
 int masterID = 0;
@@ -62,10 +57,6 @@ int selectedShapeID;
 
 /* Shape trasnformation vectors */
 Vector3D shapeTransformations;
-
-GLUquadricObj *sphere=NULL;
-int mysphereID;
-
 
 
 //function which will populate a sample graph
@@ -223,68 +214,6 @@ void initGraph() {
 // 	glutPostRedisplay();
 // }
 
-void drawLight()
-{
-	glDisable(GL_LIGHTING);
-	glColor4f(1.0f, 0.0f, 1.0f, 1.0F);
-
-	glPushMatrix();
-	glTranslatef(light_pos0[0], light_pos0[1], light_pos0[2]);
-	glutSolidSphere(0.1, 12, 10);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(light_pos1[0], light_pos1[1], light_pos1[2]);
-	glutSolidSphere(0.1, 12, 10);
-	glPopMatrix();
-
-	glEnable(GL_LIGHTING);
-}
-
-void lockCamera()
-{
-	/* Lock Rotation */
-	if (xyzRotation[0] > -5.0f)
-		xyzRotation[0] = -5.0f;
-	if (xyzRotation[0] < -45.0f)
-		xyzRotation[0] = -45.0f;
-
-	if (xyzRotation[1] < 10.0f)
-		xyzRotation[1] = 10.0f;
-	if (xyzRotation[1] > 80.0f)
-		xyzRotation[1] = 80.0f;
-
-	if (xyzRotation[2] > 30.0f)
-		xyzRotation[2] = 30.0f;
-	if (xyzRotation[2] < -45.0f)
-		xyzRotation[2] = -45.0f;
-
-	/* Lock Translation */
-
-	if (cam.x < -5)
-		cam.x = -5;
-	if (cam.x >  5)
-		cam.x =  5;
-
-	if (cam.y < -1)
-		cam.y = -1;
-	if (cam.y >  3)
-		cam.y =  3;
-
-	if (cam.z > 20)
-		cam.z = 20;
-	if (cam.z < 12)
-		cam.z = 12;
-
-}
-
-/* Moves camera positions along a vector*/
-void moveCamera(PVector3f dirVector, float amt)
-{
-	cam = cam + (dirVector*amt);
-	//lockCamera();
-}
-
 // /* Moves shape along a vector */
 // void moveShape(PVector3f dirVector, float amt)
 // {
@@ -302,304 +231,154 @@ void moveCamera(PVector3f dirVector, float amt)
 // 	parent->describeNode();
 // }
 
+void moveLight(int lightID, LightMovement movement) {
+	switch (lightID) {
+		case 0: light0->moveLight(movement); break;
+		case 1: light1->moveLight(movement); break;
+	}
+}
+
 //callbacks
-void keyboard(unsigned char key, int x, int y)
-{
-	/*Esc to exit the program*/
-	if(key == 27)
-	{
-		exit(0);
-	}
-
-	/*CAMERA CONTROL AND SHAPE CONTROL*/
-	/*WASD+Space+z to control the camera*/
-	else if (key == 'w')
-	{
-		if (shapeControl == SCENE)
-		{
-			moveCamera(forward, cameraSpeed);
-		}
-	} else if (key == 'a')
-	{
-		if (shapeControl == SCENE)
-		{
-			moveCamera(left, cameraSpeed);
-		}
-	} else if (key == 's')
-	{
-		if (shapeControl == SCENE)
-		{
-			moveCamera(back, cameraSpeed);
-		}
-	} else if (key == 'd')
-	{
-		if (shapeControl == SCENE)
-		{
-			moveCamera(right, cameraSpeed);
-		}
-		/* Space bar */
-	}  else if (key == 32)
-	{
-		if (shapeControl == SCENE)
-		{
-			moveCamera(up, cameraSpeed);
-		}
-	} else if (key == 'c')
-	{
-		if (shapeControl == SCENE)
-		{
-			moveCamera(down, cameraSpeed);
-		}
-	}
-
-	/*Z to toggle between moving light sources */
-	else if (key == 'z')
-	{
-		switch(lightControl)
-		{
-			case LIGHT0:
-				lightControl = LIGHT1;
-				break;
-			case LIGHT1:
-				lightControl = LIGHT0;
-				break;
-			default:
-				break;
-		}
-	}
-
-	/* Move Lights */
-	else if (key == 'f')
-	{
-		if (lightControl == LIGHT0)
-		{
-			light_pos0[0]--;
-		} else if (lightControl == LIGHT1)
-		{
-			light_pos1[0]--;
-		}
-	} else if (key == 'h')
-	{
-		if (lightControl == LIGHT0)
-		{
-			light_pos0[0]++;
-		} else if (lightControl == LIGHT1)
-		{
-			light_pos1[0]++;
-		}
-	} else if (key == 't')
-	{
-		if (lightControl == LIGHT0)
-		{
-			light_pos0[2]++;
-			light_pos0[0]++;
-		} else if (lightControl == LIGHT1)
-		{
-			light_pos1[2]++;
-			light_pos1[0]++;
-		}
-	} else if (key == 'g')
-	{
-		if (lightControl == LIGHT0)
-		{
-			light_pos0[2]--;
-			light_pos0[0]--;
-		} else if (lightControl == LIGHT1)
-		{
-			light_pos1[2]--;
-			light_pos1[0]--;
-		}
+void keyboard(unsigned char key, int x, int y) {
+	/* ESCAPE CONTROL*/
+	if(key == 27 || key == 'q') exit(0);
+	/*CAMERA CONTROL*/
+	else if (key == 'w') cam1->moveCamera(CAMERA_FORWARD);
+	else if (key == 'a') cam1->moveCamera(CAMERA_LEFT);
+	else if (key == 's') cam1->moveCamera(CAMERA_BACK);
+	else if (key == 'd') cam1->moveCamera(CAMERA_RIGHT);
+	else if (key == 32)  cam1->moveCamera(CAMERA_UP);
+	else if (key == 'c') cam1->moveCamera(CAMERA_DOWN);
+	/* LIGHT CONTROL */
+	else if (key == 'f') moveLight(lightControl, LIGHT_LEFT);
+	else if (key == 'h') moveLight(lightControl, LIGHT_RIGHT);
+	else if (key == 't') moveLight(lightControl, LIGHT_UP);
+	else if (key == 'g') moveLight(lightControl, LIGHT_DOWN);
+	/* TOGGLE LIGHT SOURCE */
+	else if (key == 'z') {
+		lightControl = (lightControl == LIGHT0) ? LIGHT1 : LIGHT0;
 	}
 
 	glutPostRedisplay();
 }
 
-void special(int key, int x, int y)
-{
-
-	/* arrow key presses move the camera */
+void special(int key, int x, int y) {
 	switch(key){
-		/* Rotate Camera*/
-     	case GLUT_KEY_LEFT:
-	        xyzRotation[1]--;
-	        break;
-      	case GLUT_KEY_RIGHT:
-       		xyzRotation[1]++;
-        	break;
-      	case GLUT_KEY_UP:
-       		xyzRotation[0]--;
-        	break;
-      	case GLUT_KEY_DOWN:
-	        xyzRotation[0]++;
-	        break;
+     	case GLUT_KEY_LEFT:  cam1->rotateCamera(CAMERA_LEFT); break;
+    	case GLUT_KEY_RIGHT: cam1->rotateCamera(CAMERA_RIGHT); break;
+    	case GLUT_KEY_UP:    cam1->rotateCamera(CAMERA_UP); break;
+    	case GLUT_KEY_DOWN:  cam1->rotateCamera(CAMERA_DOWN); break;
+    	case GLUT_KEY_PAGE_UP:   earth->rotateX(); break;
+    	case GLUT_KEY_PAGE_DOWN: earth->rotateY(); break;
+    	case GLUT_KEY_HOME:      earth->rotateZ(); break;
  	}
-  	// lockCamera();
-
 	glutPostRedisplay();
 }
 
-void mouse(int button, int state, int x, int y)
-{
+void mouse(int button, int state, int x, int y) {
 	if(button ==  GLUT_LEFT_BUTTON && state == GLUT_DOWN){
 		// Intersect(x,y);
 	}
 }
 
-void init()
-{
-	 /* LIGHTING */
+void init() {
 	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
+  glEnable(GL_CULL_FACE);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	
+	cam1   = new Camera(camPosition, camRotation);
+	light0 = new Light(GL_LIGHT0, light_pos0, amb, diff, spec);
+	light1 = new Light(GL_LIGHT1, light_pos1, amb, diff, spec);
+	light2 = new Light(GL_LIGHT2, light_pos2, amb, diff, spec);
+	material1 = new Material(shiny, m_amb, m_diff, m_spec);
+	earth = new Globe();
 
 	GLuint id = 1;
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-
-  glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
-	glEnable(GL_TEXTURE_2D);
-
-	glEnable(GL_BLEND);
-  glBlendFunc (GL_ONE, GL_ONE);
-
 	glClearColor(0, 0, 0, 0);
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(45, 1, 1, 100);
+	glCullFace(GL_BACK);
+	glDepthMask(GL_TRUE);
+  glBlendFunc(GL_ONE, GL_ONE);
 
 	//initializing our world
 	initGraph();
 }
 
-void makeSphere() {
-	sphere = gluNewQuadric();
-	gluQuadricDrawStyle(sphere, GLU_FILL);
-	gluQuadricTexture(sphere, TRUE);
-	gluQuadricNormals(sphere, GLU_SMOOTH);
-	//Making a display list
-	mysphereID = glGenLists(1);
-	glNewList(mysphereID, GL_COMPILE);
-	gluSphere(sphere, 1.0, 20, 20);
-	glEndList();
-	gluDeleteQuadric(sphere);
+void sphericalCoordinates() {
+	/*LATITUDE LONGITUDE SPHERICAL COORDINATE MAPPING*/
+	float latitude = 43.653226;
+	float longitude = -79.383184;
+	float radius = 5.0;
+
+	float X = radius * cos(latitude) * cos(longitude);
+	float Y = radius * cos(latitude) * sin(longitude);
+	float Z = radius * sin(latitude);
+
+	glPushMatrix();
+	glBegin(GL_LINES);
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(X*1.5, Y*1.5, Z*1.5);
+	glEnd();
+	glPopMatrix();
 }
 
-void loadTextures() {
-	// load Textures
-	std::vector<std::string> files;
-	files.push_back("images/earth.png");
-
-	for(int i = 0; i < files.size(); i++) {
-		const char* cpFilename = files.at(i).c_str();
-		FIBITMAP* bitmap = FreeImage_Load(FIF_PNG, cpFilename, PNG_DEFAULT);
-		bitmap = FreeImage_ConvertTo24Bits(bitmap);
-		if(FreeImage_GetBPP(bitmap) != 32) {
-			FIBITMAP * tempImage = bitmap;
-			bitmap = FreeImage_ConvertTo32Bits(bitmap);
-		}
-
-		if(bitmap != NULL) {
-			glBindTexture(GL_TEXTURE_2D, i);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			BYTE *bits = new BYTE[FreeImage_GetWidth(bitmap) * FreeImage_GetHeight(bitmap) * 4];
-			BYTE *pixels = (BYTE*) FreeImage_GetBits(bitmap);
-
-			for (int pix = 0; pix<FreeImage_GetWidth(bitmap) * FreeImage_GetHeight(bitmap); pix++) {
-					bits[pix * 4 + 0] = pixels[pix * 4 + 2];
-					bits[pix * 4 + 1] = pixels[pix * 4 + 1];
-					bits[pix * 4 + 2] = pixels[pix * 4 + 0];
-			}
-
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, FreeImage_GetWidth(bitmap), FreeImage_GetHeight(bitmap), 0, GL_RGBA, GL_UNSIGNED_BYTE, bits);
-
-			FreeImage_Unload(bitmap);
-			delete bits;
-		}
-
-		printf("Loaded file %s\n", files.at(i).c_str());
-	}
-
-}
-
-void drawGlobe() {
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glCallList(mysphereID);
-
-	glTranslatef(1,0,0);
-	float diff[] = {0.5, 0.5, 0.5, 0.2};
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
-	glutSolidSphere(0.5, 20, 20);
-}
-
-
-/* display function - GLUT display callback function
- *		clears the screen, sets the camera position, draws the ground plane and movable box
- */
-void display(void)
-{
-	/* Clear the Screen */
+void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	/*6 DOF camera controls*/
-	glTranslatef(-cam.x,-cam.y,-cam.z);
 
-	glRotatef(-xyzRotation[0],1,0,0);
-	glRotatef(-xyzRotation[1],0,1,0);
-	glRotatef(-xyzRotation[2],0,0,1);
+	cam1->look();
+	earth->draw();
+	light0->display();
+	light1->display();
+	light2->display();
+	material1->display();
 
-	glLightfv(GL_LIGHT0, GL_POSITION, light_pos0);
-  glLightfv(GL_LIGHT0, GL_AMBIENT, amb0);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, diff0);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, spec0);
-
-	glLightfv(GL_LIGHT1, GL_POSITION, light_pos1);
-  glLightfv(GL_LIGHT1, GL_AMBIENT, amb1);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, diff1);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, spec1);
-
-	 /* MATERIALS */
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,  m_amb);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  m_diff);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  m_spec);
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS,  shiny);
-
-	drawLight();
-
-	drawGlobe();
+	sphericalCoordinates();
 
 	glutSwapBuffers();
 }
 
+void reshape(GLsizei width, GLsizei height) {
+	if (height == 0) height = 1;
+
+	glMatrixMode(GL_PROJECTION);
+	glViewport(0, 0, width, height);
+	glLoadIdentity();
+
+	float aspect = width * 1.0 / (float)height;
+	gluPerspective(45.0, aspect, 1.0f, 100.0f);
+}
+
+void update(int value) {
+	earth->rotateZ();
+	glutPostRedisplay();
+	glutTimerFunc(35, update, 0);
+}
+
 /* main function - program entry point */
-int main(int argc, char** argv)
-{
-	glutInit(&argc, argv);		//starts up GLUT
-
+int main(int argc, char** argv) {
+	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-
 
 	glutInitWindowSize(600, 600);
 	glutInitWindowPosition(50, 50);
 
-	glutCreateWindow("SimpleSceneGraph");	//creates the window
+	glutCreateWindow("Global Data Visualization");
 
-	glutDisplayFunc(display);	//registers "display" as the display callback function
+	glutTimerFunc(1000, update, 0);
 	glutKeyboardFunc(keyboard);
+	glutDisplayFunc(display);
+	glutReshapeFunc(reshape);
 	glutSpecialFunc(special);
 	glutMouseFunc(mouse);
 
 	init();
-	loadTextures();
-	makeSphere();
 
-	glutMainLoop();				//starts the event loop
-	return(0);					//return may not be necessary on all compilers
+	glutMainLoop();
+	return(0);
 }
