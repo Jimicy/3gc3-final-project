@@ -14,10 +14,10 @@ void Globe::draw() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glCallList(mysphereID);
 
-	glTranslatef(1,0,0);
-	float diff[] = {0.5, 0.5, 0.5, 0.2};
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
-	glutSolidSphere(0.5, 20, 20);
+	// glTranslatef(1,0,0);
+	// float diff[] = {0.5, 0.5, 0.5, 0.2};
+	// glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
+	// glutSolidSphere(0.5, 20, 20);
 }
 
 void Globe::makeSphere() {
