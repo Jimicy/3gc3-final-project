@@ -15,13 +15,13 @@
 #include "Camera.h"
 #include "Light.h"
 #include "Material.h"
+#include "Globe.h"
 
 
 enum LightControl {LIGHT0, LIGHT1};
 LightControl lightControl = LIGHT0;
 enum ShapeControl {SHAPES, SCENE};
 ShapeControl shapeControl = SCENE;
-
 
 /* CAMERA */
 Camera *cam1;
@@ -47,6 +47,9 @@ float m_diff[3] = {0.18275f, 0.17, 1};
 float m_spec[3] = {0.332741f, 0.328634f, 0.346435f};
 float shiny = 0.3f;
 
+/* EARTH */
+Globe *earth;
+
 //node ids
 int masterID = 0;
 int getID(){
@@ -57,10 +60,6 @@ int selectedShapeID;
 
 /* Shape trasnformation vectors */
 Vector3D shapeTransformations;
-
-GLUquadricObj *sphere=NULL;
-int mysphereID;
-
 
 
 //function which will populate a sample graph
@@ -293,6 +292,7 @@ void init() {
 	light0 = new Light(GL_LIGHT0, light_pos0, amb0, diff0, spec0);
 	light1 = new Light(GL_LIGHT1, light_pos1, amb1, diff1, spec1);
 	material1 = new Material(shiny, m_amb, m_diff, m_spec);
+	earth = new Globe();
 
 	GLuint id = 1;
 
@@ -307,75 +307,7 @@ void init() {
 	initGraph();
 }
 
-void makeSphere() {
-	sphere = gluNewQuadric();
-	gluQuadricDrawStyle(sphere, GLU_FILL);
-	gluQuadricTexture(sphere, TRUE);
-	gluQuadricNormals(sphere, GLU_SMOOTH);
-	//Making a display list
-	mysphereID = glGenLists(1);
-	glNewList(mysphereID, GL_COMPILE);
-	gluSphere(sphere, 1.0, 20, 20);
-	glEndList();
-	gluDeleteQuadric(sphere);
-}
-
-void loadTextures() {
-	// load Textures
-	std::vector<std::string> files;
-	files.push_back("images/earth.png");
-
-	for(int i = 0; i < files.size(); i++) {
-		const char* cpFilename = files.at(i).c_str();
-		FIBITMAP* bitmap = FreeImage_Load(FIF_PNG, cpFilename, PNG_DEFAULT);
-		bitmap = FreeImage_ConvertTo24Bits(bitmap);
-		if(FreeImage_GetBPP(bitmap) != 32) {
-			FIBITMAP * tempImage = bitmap;
-			bitmap = FreeImage_ConvertTo32Bits(bitmap);
-		}
-
-		if(bitmap != NULL) {
-			glBindTexture(GL_TEXTURE_2D, i);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			BYTE *bits = new BYTE[FreeImage_GetWidth(bitmap) * FreeImage_GetHeight(bitmap) * 4];
-			BYTE *pixels = (BYTE*) FreeImage_GetBits(bitmap);
-
-			for (int pix = 0; pix<FreeImage_GetWidth(bitmap) * FreeImage_GetHeight(bitmap); pix++) {
-					bits[pix * 4 + 0] = pixels[pix * 4 + 2];
-					bits[pix * 4 + 1] = pixels[pix * 4 + 1];
-					bits[pix * 4 + 2] = pixels[pix * 4 + 0];
-			}
-
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, FreeImage_GetWidth(bitmap), FreeImage_GetHeight(bitmap), 0, GL_RGBA, GL_UNSIGNED_BYTE, bits);
-
-			FreeImage_Unload(bitmap);
-			delete bits;
-		}
-
-		printf("Loaded file %s\n", files.at(i).c_str());
-	}
-
-}
-
-void drawGlobe() {
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glCallList(mysphereID);
-
-	glTranslatef(1,0,0);
-	float diff[] = {0.5, 0.5, 0.5, 0.2};
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
-	glutSolidSphere(0.5, 20, 20);
-}
-
-
-/* display function - GLUT display callback function
- *		clears the screen, sets the camera position, draws the ground plane and movable box
- */
-void display(void)
-{
-	/* Clear the Screen */
+void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -384,45 +316,40 @@ void display(void)
 	light0->display();
 	light1->display();
 	material1->display();
-
-	drawGlobe();
+	earth->draw();
 
 	glutSwapBuffers();
 }
 
 void reshape(GLsizei width, GLsizei height) {
 	if (height == 0) height = 1;
-	float aspect = width * 1.0 / (float)height;
 
 	glMatrixMode(GL_PROJECTION);
 	glViewport(0, 0, width, height);
 	glLoadIdentity();
+
+	float aspect = width * 1.0 / (float)height;
 	gluPerspective(45.0, aspect, 1.0f, 100.0f);
 }
 
 /* main function - program entry point */
-int main(int argc, char** argv)
-{
-	glutInit(&argc, argv);		//starts up GLUT
-
+int main(int argc, char** argv) {
+	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-
 
 	glutInitWindowSize(600, 600);
 	glutInitWindowPosition(50, 50);
 
-	glutCreateWindow("SimpleSceneGraph");	//creates the window
+	glutCreateWindow("Global Data Visualization");
 
-	glutDisplayFunc(display);	//registers "display" as the display callback function
 	glutKeyboardFunc(keyboard);
+	glutDisplayFunc(display);
+	glutReshapeFunc(reshape);
 	glutSpecialFunc(special);
 	glutMouseFunc(mouse);
-	glutReshapeFunc(reshape);
 
 	init();
-	loadTextures();
-	makeSphere();
 
-	glutMainLoop();				//starts the event loop
-	return(0);					//return may not be necessary on all compilers
+	glutMainLoop();
+	return(0);
 }
