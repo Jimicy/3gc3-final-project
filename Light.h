@@ -1,5 +1,5 @@
-#ifndef LIGHT_D
-#define LIGHT_D
+#ifndef LIGHT_H
+#define LIGHT_H
 
 #include "PMath/PVector.h"
 
@@ -20,4 +20,4 @@ class Light {
 		int glLight;
 };
 
-#endif /* CAMERA_H */
+#endif /* LIGHT_H */
