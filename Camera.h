@@ -4,9 +4,9 @@
 #include "PMath/PVector.h"
 
 typedef enum { 
-	FORWARD, BACK,
-	UP, DOWN,
-	LEFT, RIGHT
+	CAMERA_FORWARD, CAMERA_BACK,
+	CAMERA_UP, CAMERA_DOWN,
+	CAMERA_LEFT, CAMERA_RIGHT
 } CameraMovement;
 
 class Camera {

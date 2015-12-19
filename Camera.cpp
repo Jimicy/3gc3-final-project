@@ -27,22 +27,22 @@ void Camera::moveCamera(CameraMovement movement) {
 
 	PVector3f direction;
 	switch (movement) {
-		case FORWARD:	direction = forward; break;
-		case BACK:	  direction = back;    break;
-		case UP:	    direction = up;      break;
-		case DOWN:	  direction = down;    break;
-		case LEFT:	  direction = left;    break;
-		case RIGHT:	  direction = right;   break;
+		case CAMERA_FORWARD: direction = forward; break;
+		case CAMERA_BACK:	   direction = back;    break;
+		case CAMERA_UP:	     direction = up;      break;
+		case CAMERA_DOWN:	   direction = down;    break;
+		case CAMERA_LEFT:	   direction = left;    break;
+		case CAMERA_RIGHT:	 direction = right;   break;
 	}
 	position = position + (direction * CAMERA_SPEED);
 }
 
 void Camera::rotateCamera(CameraMovement movement) {
 	switch (movement) {
-		case UP:    rotation.x--; break;
-		case DOWN:  rotation.x++; break;
-		case LEFT:  rotation.y--; break;
-		case RIGHT:	rotation.y++; break;
+		case CAMERA_UP:    rotation.x--; break;
+		case CAMERA_DOWN:  rotation.x++; break;
+		case CAMERA_LEFT:  rotation.y--; break;
+		case CAMERA_RIGHT: rotation.y++; break;
 	}
 }
 
