@@ -25,21 +25,17 @@ ShapeControl shapeControl = SCENE;
 
 /* CAMERA */
 Camera *cam1;
-PVector3f camPosition(0.0f, 0.0f, 15.0f);
-PVector3f camRotation(0.0f, 0.0f, 0.0f);
-// PVector3f camRotation(-11.0f, 40.0f, 0.0f);
+PVector3f camPosition(0.0f, 0.0f, 17.0f);
+PVector3f camRotation(-29.0f, 0.0f, 0.0f);
 
 /* LIGHTING */
-Light *light0, *light1;
-float light_pos0 [3] = {0, 3, 3};
-float amb0[4]  = {1, 1, 1, 1};
-float diff0[4] = {0.2f, 0.2f, 0.2f, 1};
-float spec0[4] = {1, 1, 1, 1};
-
-float light_pos1 [3] =  {3 , 3, 0};
-float amb1[4]  = {1, 1, 1, 1};
-float diff1[4] = {0.2f, 0.2f, 0.2f, 1};
-float spec1[4] = {1, 1, 1, 1};
+Light *light0, *light1, *light2;
+float light_pos0 [3] = {0, 3, 7};
+float light_pos1 [3] = {1.0, 6.0, 7};
+float light_pos2 [3] = {-1.0, 6.0, 7};
+float amb[4]  = {1, 1, 1, 1};
+float diff[4] = {0.2f, 0.2f, 0.2f, 1};
+float spec[4] = {1, 1, 1, 1};
 
 /* MATERIALS */
 Material *material1;
@@ -272,6 +268,9 @@ void special(int key, int x, int y) {
     	case GLUT_KEY_RIGHT: cam1->rotateCamera(CAMERA_RIGHT); break;
     	case GLUT_KEY_UP:    cam1->rotateCamera(CAMERA_UP); break;
     	case GLUT_KEY_DOWN:  cam1->rotateCamera(CAMERA_DOWN); break;
+    	case GLUT_KEY_PAGE_UP:   earth->rotateX(); break;
+    	case GLUT_KEY_PAGE_DOWN: earth->rotateY(); break;
+    	case GLUT_KEY_HOME:      earth->rotateZ(); break;
  	}
 	glutPostRedisplay();
 }
@@ -290,8 +289,9 @@ void init() {
 	glEnable(GL_BLEND);
 	
 	cam1   = new Camera(camPosition, camRotation);
-	light0 = new Light(GL_LIGHT0, light_pos0, amb0, diff0, spec0);
-	light1 = new Light(GL_LIGHT1, light_pos1, amb1, diff1, spec1);
+	light0 = new Light(GL_LIGHT0, light_pos0, amb, diff, spec);
+	light1 = new Light(GL_LIGHT1, light_pos1, amb, diff, spec);
+	light2 = new Light(GL_LIGHT2, light_pos2, amb, diff, spec);
 	material1 = new Material(shiny, m_amb, m_diff, m_spec);
 	earth = new Globe();
 
@@ -310,20 +310,6 @@ void init() {
 
 void Square (void) {
   glPushMatrix ();
-
-  glBegin (GL_QUADS);
-  	glVertex3f (3.0, 0.0, 0.0);
-  	glVertex3f (3.0, 0.0, 3.0);
-  	glVertex3f (3.0, 3.0, 3.0);
-  	glVertex3f (3.0, 3.0, 0.0);
-  glEnd ();
-
-  glBegin(GL_QUADS);
-  	glVertex3f (3.0, 0.0, 3.0);
-  	glVertex3f (3.0, 3.0, 3.0);
-  	glVertex3f (0.0, 3.0, 3.0);
-  	glVertex3f (0.0, 0.0, 3.0);
-	glEnd();
 
 	glBegin(GL_LINES);
 		glVertex3f(0.0, 0.0, 0.0);
@@ -350,10 +336,11 @@ void display(void) {
 	glLoadIdentity();
 
 	cam1->look();
+	earth->draw();
 	light0->display();
 	light1->display();
+	light2->display();
 	material1->display();
-	earth->draw();
 
 	Square();
 
