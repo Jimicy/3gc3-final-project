@@ -26,7 +26,8 @@ ShapeControl shapeControl = SCENE;
 /* CAMERA */
 Camera *cam1;
 PVector3f camPosition(0.0f, 0.0f, 15.0f);
-PVector3f camRotation(-11.0f, 40.0f, 0.0f);
+PVector3f camRotation(0.0f, 0.0f, 0.0f);
+// PVector3f camRotation(-11.0f, 40.0f, 0.0f);
 
 /* LIGHTING */
 Light *light0, *light1;
@@ -307,6 +308,42 @@ void init() {
 	initGraph();
 }
 
+void Square (void) {
+  glPushMatrix ();
+
+  glBegin (GL_QUADS);
+  	glVertex3f (3.0, 0.0, 0.0);
+  	glVertex3f (3.0, 0.0, 3.0);
+  	glVertex3f (3.0, 3.0, 3.0);
+  	glVertex3f (3.0, 3.0, 0.0);
+  glEnd ();
+
+  glBegin(GL_QUADS);
+  	glVertex3f (3.0, 0.0, 3.0);
+  	glVertex3f (3.0, 3.0, 3.0);
+  	glVertex3f (0.0, 3.0, 3.0);
+  	glVertex3f (0.0, 0.0, 3.0);
+	glEnd();
+
+	glBegin(GL_LINES);
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(3.0, 0.0, 0.0);
+	glEnd();
+
+	glBegin(GL_LINES);
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(0.0, 3.0, 0.0);
+	glEnd();
+
+	glBegin(GL_LINES);
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(0.0, 0.0, 3.0);
+	glEnd();
+	glPopMatrix ();
+}
+
+
+
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
@@ -317,6 +354,8 @@ void display(void) {
 	light1->display();
 	material1->display();
 	earth->draw();
+
+	Square();
 
 	glutSwapBuffers();
 }
