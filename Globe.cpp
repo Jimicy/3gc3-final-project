@@ -6,14 +6,24 @@
 Globe::Globe() {
 	loadTexture();
 	makeSphere();
+	rotation[0] = -90.0;
+	rotation[1] = 0.0; 
+	rotation[2] = 90.0;
 	// diff = {0.5, 0.5, 0.5, 0.2};
 }
 
+void Globe::rotateX() { rotation[0] += 10; }
+void Globe::rotateY() { rotation[1] += 10; }
+void Globe::rotateZ() { rotation[2] += 10; }
 
 void Globe::draw() {
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glCallList(mysphereID);
-
+	glPushMatrix();
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glRotatef(rotation[0],1.0,0.0,0.0);
+		glRotatef(rotation[1],0.0,1.0,0.0);
+		glRotatef(rotation[2],0.0,0.0,1.0);
+		glCallList(mysphereID);
+	glPopMatrix();
 	// glTranslatef(1,0,0);
 	// float diff[] = {0.5, 0.5, 0.5, 0.2};
 	// glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
@@ -30,7 +40,7 @@ void Globe::makeSphere() {
 	//Making a display list
 	mysphereID = glGenLists(1);
 	glNewList(mysphereID, GL_COMPILE);
-	gluSphere(sphere, 1.0, 20, 20);
+	gluSphere(sphere, 5, 20, 20);
 	glEndList();
 	gluDeleteQuadric(sphere);
 }
@@ -39,7 +49,7 @@ void Globe::makeSphere() {
 void Globe::loadTexture() {
 	// load Textures
 	std::vector<std::string> files;
-	files.push_back("images/earth.png");
+	files.push_back("images/earth2.png");
 
 	for(int i = 0; i < files.size(); i++) {
 		const char* cpFilename = files.at(i).c_str();
