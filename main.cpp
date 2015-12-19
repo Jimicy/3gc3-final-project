@@ -14,6 +14,7 @@
 #include "ray.h"
 #include "Camera.h"
 #include "Light.h"
+#include "Material.h"
 
 
 enum LightControl {LIGHT0, LIGHT1};
@@ -40,6 +41,7 @@ float diff1[4] = {0.2f, 0.2f, 0.2f, 1};
 float spec1[4] = {1, 1, 1, 1};
 
 /* MATERIALS */
+Material *material1;
 float m_amb[3] = {0.05375f, 0.05f, 0.06625f};
 float m_diff[3] = {0.18275f, 0.17, 1};
 float m_spec[3] = {0.332741f, 0.328634f, 0.346435f};
@@ -241,8 +243,7 @@ void moveLight(int lightID, LightMovement movement) {
 }
 
 //callbacks
-void keyboard(unsigned char key, int x, int y)
-{
+void keyboard(unsigned char key, int x, int y) {
 	/* ESCAPE CONTROL*/
 	if(key == 27 || key == 'q') exit(0);
 	/*CAMERA CONTROL*/
@@ -266,7 +267,6 @@ void keyboard(unsigned char key, int x, int y)
 }
 
 void special(int key, int x, int y) {
-
 	switch(key){
      	case GLUT_KEY_LEFT:  cam1->rotateCamera(CAMERA_LEFT); break;
     	case GLUT_KEY_RIGHT: cam1->rotateCamera(CAMERA_RIGHT); break;
@@ -276,40 +276,32 @@ void special(int key, int x, int y) {
 	glutPostRedisplay();
 }
 
-void mouse(int button, int state, int x, int y)
-{
+void mouse(int button, int state, int x, int y) {
 	if(button ==  GLUT_LEFT_BUTTON && state == GLUT_DOWN){
 		// Intersect(x,y);
 	}
 }
 
-void init()
-{
-	 /* LIGHTING */
+void init() {
 	glEnable(GL_LIGHTING);
-	// glEnable(GL_LIGHT0);
-	// glEnable(GL_LIGHT1);
-
-	cam1 = new Camera(camPosition, camRotation);
-
+  glEnable(GL_CULL_FACE);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	
+	cam1   = new Camera(camPosition, camRotation);
 	light0 = new Light(GL_LIGHT0, light_pos0, amb0, diff0, spec0);
 	light1 = new Light(GL_LIGHT1, light_pos1, amb1, diff1, spec1);
+	material1 = new Material(shiny, m_amb, m_diff, m_spec);
 
 	GLuint id = 1;
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-
-  glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
-	glEnable(GL_TEXTURE_2D);
-
-	glEnable(GL_BLEND);
-  glBlendFunc(GL_ONE, GL_ONE);
-
 	glClearColor(0, 0, 0, 0);
+
+	glCullFace(GL_BACK);
+	glDepthMask(GL_TRUE);
+  glBlendFunc(GL_ONE, GL_ONE);
 
 	//initializing our world
 	initGraph();
@@ -389,15 +381,9 @@ void display(void)
 	glLoadIdentity();
 
 	cam1->look();
-
 	light0->display();
 	light1->display();
-
-	 /* MATERIALS */
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,  m_amb);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  m_diff);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  m_spec);
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS,  shiny);
+	material1->display();
 
 	drawGlobe();
 
@@ -406,17 +392,12 @@ void display(void)
 
 void reshape(GLsizei width, GLsizei height) {
 	if (height == 0) height = 1;
+	float aspect = width * 1.0 / (float)height;
 
 	glMatrixMode(GL_PROJECTION);
 	glViewport(0, 0, width, height);
 	glLoadIdentity();
-
-	float aspect = width * 1.0 / (float)height;
-	float fov = 45.0f;
-	float near = 1.0f;
-	float far = 100.0f;
-
-	gluPerspective(fov, aspect, near, far);
+	gluPerspective(45.0, aspect, 1.0f, 100.0f);
 }
 
 /* main function - program entry point */
