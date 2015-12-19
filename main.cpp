@@ -12,24 +12,8 @@
 #include "BoundedBox.h"
 #include "FreeImage.h"
 #include "ray.h"
- #include "Camera.h"
+#include "Camera.h"
 
-/* Rotations on the 3 axes */
-float xyzRotation[] = {-11, 40, 0};
-
-/* The 6 direction vectors */
-PVector3f forward(0,0,-1);
-PVector3f back = -forward;
-PVector3f up(0,1,0);
-PVector3f down = -up;
-PVector3f left = up * forward;
-PVector3f right = -left;
-
-/* Camera Vector for translations */
-PVector3f cam(0.0f, 0.0f, 15.0f);
-
-const float cameraSpeed = 0.75f;
-const float shapeSpeed = 0.5f;
 
 enum LightControl {LIGHT0, LIGHT1};
 LightControl lightControl = LIGHT0;
@@ -244,50 +228,6 @@ void drawLight()
 	glEnable(GL_LIGHTING);
 }
 
-void lockCamera()
-{
-	/* Lock Rotation */
-	if (xyzRotation[0] > -5.0f)
-		xyzRotation[0] = -5.0f;
-	if (xyzRotation[0] < -45.0f)
-		xyzRotation[0] = -45.0f;
-
-	if (xyzRotation[1] < 10.0f)
-		xyzRotation[1] = 10.0f;
-	if (xyzRotation[1] > 80.0f)
-		xyzRotation[1] = 80.0f;
-
-	if (xyzRotation[2] > 30.0f)
-		xyzRotation[2] = 30.0f;
-	if (xyzRotation[2] < -45.0f)
-		xyzRotation[2] = -45.0f;
-
-	/* Lock Translation */
-
-	if (cam.x < -5)
-		cam.x = -5;
-	if (cam.x >  5)
-		cam.x =  5;
-
-	if (cam.y < -1)
-		cam.y = -1;
-	if (cam.y >  3)
-		cam.y =  3;
-
-	if (cam.z > 20)
-		cam.z = 20;
-	if (cam.z < 12)
-		cam.z = 12;
-
-}
-
-/* Moves camera positions along a vector*/
-void moveCamera(PVector3f dirVector, float amt)
-{
-	cam = cam + (dirVector*amt);
-	//lockCamera();
-}
-
 // /* Moves shape along a vector */
 // void moveShape(PVector3f dirVector, float amt)
 // {
@@ -309,32 +249,15 @@ void moveCamera(PVector3f dirVector, float amt)
 void keyboard(unsigned char key, int x, int y)
 {
 	/*Esc to exit the program*/
-	if(key == 27)
-	{
-		exit(0);
-	}
+	if(key == 27 || key == 'q') exit(0);
 
-	/*CAMERA CONTROL AND SHAPE CONTROL*/
-	/*WASD+Space+z to control the camera*/
-	else if (key == 'w') {
-		moveCamera(forward, cameraSpeed);
-	}
-	else if (key == 'a') {
-		moveCamera(left, cameraSpeed);
-	}
-	else if (key == 's') {
-		moveCamera(back, cameraSpeed);
-	}
-	else if (key == 'd') {
-		moveCamera(right, cameraSpeed);
-		/* Space bar */
-	}
-	else if (key == 32) {
-		moveCamera(up, cameraSpeed);
-	}
-	else if (key == 'c') {
-		moveCamera(down, cameraSpeed);
-	}
+	/*CAMERA CONTROL*/
+	else if (key == 'w') cam1->moveCamera(FORWARD);
+	else if (key == 'a') cam1->moveCamera(LEFT);
+	else if (key == 's') cam1->moveCamera(BACK);
+	else if (key == 'd') cam1->moveCamera(RIGHT);
+	else if (key == 32)  cam1->moveCamera(UP);
+	else if (key == 'c') cam1->moveCamera(DOWN);
 
 	/*Z to toggle between moving light sources */
 	else if (key == 'z')
@@ -398,27 +321,14 @@ void keyboard(unsigned char key, int x, int y)
 	glutPostRedisplay();
 }
 
-void special(int key, int x, int y)
-{
+void special(int key, int x, int y) {
 
-	/* arrow key presses move the camera */
 	switch(key){
-		/* Rotate Camera*/
-     	case GLUT_KEY_LEFT:
-	        xyzRotation[1]--;
-	        break;
-      	case GLUT_KEY_RIGHT:
-       		xyzRotation[1]++;
-        	break;
-      	case GLUT_KEY_UP:
-       		xyzRotation[0]--;
-        	break;
-      	case GLUT_KEY_DOWN:
-	        xyzRotation[0]++;
-	        break;
+     	case GLUT_KEY_LEFT:  cam1->rotateCamera(LEFT); break;
+    	case GLUT_KEY_RIGHT: cam1->rotateCamera(RIGHT); break;
+    	case GLUT_KEY_UP:    cam1->rotateCamera(UP); break;
+    	case GLUT_KEY_DOWN:  cam1->rotateCamera(DOWN); break;
  	}
-  	// lockCamera();
-
 	glutPostRedisplay();
 }
 
@@ -436,9 +346,9 @@ void init()
 	glEnable(GL_LIGHT0);
 	glEnable(GL_LIGHT1);
 
-	PVector3f rot(-11, 40, 0);
-	PVector3f pos(0.0f, 0.0f, 15.0f);
-	cam1 = new Camera(pos, rot);
+	PVector3f camPosition(0.0f, 0.0f, 15.0f);
+	PVector3f camRotation(-11.0f, 40.0f, 0.0f);
+	cam1 = new Camera(camPosition, camRotation);
 
 	GLuint id = 1;
 
@@ -533,11 +443,7 @@ void display(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	/*6 DOF camera controls*/
-	glTranslatef(-cam.x,-cam.y,-cam.z);
-
-	glRotatef(-xyzRotation[0],1,0,0);
-	glRotatef(-xyzRotation[1],0,1,0);
-	glRotatef(-xyzRotation[2],0,0,1);
+	cam1->look();
 
 	glLightfv(GL_LIGHT0, GL_POSITION, light_pos0);
   glLightfv(GL_LIGHT0, GL_AMBIENT, amb0);
