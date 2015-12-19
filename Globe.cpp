@@ -6,17 +6,22 @@
 Globe::Globe() {
 	loadTexture();
 	makeSphere();
+
 	rotation[0] = -90.0;
-	rotation[1] = 0.0; 
-	rotation[2] = 90.0;
+	rotation[1] = 23.0; 
+	rotation[2] = 0.0;
+	
+
 	// diff = {0.5, 0.5, 0.5, 0.2};
 }
 
-void Globe::rotateX() { rotation[0] += 1; }
-void Globe::rotateY() { rotation[1] += 1; }
-void Globe::rotateZ() { rotation[2] += 1; }
+void Globe::rotateX() { rotation[0] += 0.5; }
+void Globe::rotateY() { rotation[1] += 0.5; }
+void Globe::rotateZ() { rotation[2] += 0.5; }
 
 void Globe::draw() {
+
+	// Earth Sphere
 	glPushMatrix();
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glRotatef(rotation[0],1.0,0.0,0.0);
@@ -24,6 +29,29 @@ void Globe::draw() {
 		glRotatef(rotation[2],0.0,0.0,1.0);
 		glCallList(mysphereID);
 	glPopMatrix();
+
+
+	glPushMatrix();
+		glLineWidth(2.0);
+		float linePoint = 7.5;
+
+		// Earth Orbital Axis
+		glLineStipple(4, 0xAAAA);
+		glEnable(GL_LINE_STIPPLE);
+		glBegin(GL_LINES);
+			glVertex3f(0.0, linePoint, 0.0);
+			glVertex3f(0.0, -linePoint, 0.0);
+		glEnd();
+		glDisable(GL_LINE_STIPPLE);
+		
+		// Earth Rotation Axis
+		glRotatef(-23.0, 0.0, 0.0, 1.0); 
+		glBegin(GL_LINES);
+			glVertex3f(0.0, linePoint, 0.0);
+			glVertex3f(0.0, -linePoint, 0.0);
+		glEnd();
+	glPopMatrix();
+
 	// glTranslatef(1,0,0);
 	// float diff[] = {0.5, 0.5, 0.5, 0.2};
 	// glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
@@ -40,7 +68,7 @@ void Globe::makeSphere() {
 	//Making a display list
 	mysphereID = glGenLists(1);
 	glNewList(mysphereID, GL_COMPILE);
-	gluSphere(sphere, 5, 20, 20);
+	gluSphere(sphere, 5, 360, 360);
 	glEndList();
 	gluDeleteQuadric(sphere);
 }
@@ -49,7 +77,7 @@ void Globe::makeSphere() {
 void Globe::loadTexture() {
 	// load Textures
 	std::vector<std::string> files;
-	files.push_back("images/earth2.png");
+	files.push_back("images/earth-hires-21.png");
 
 	for(int i = 0; i < files.size(); i++) {
 		const char* cpFilename = files.at(i).c_str();
