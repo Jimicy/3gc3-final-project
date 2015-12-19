@@ -308,6 +308,24 @@ void init() {
 	initGraph();
 }
 
+void sphericalCoordinates() {
+	/*LATITUDE LONGITUDE SPHERICAL COORDINATE MAPPING*/
+	float latitude = 43.653226;
+	float longitude = -79.383184;
+	float radius = 5.0;
+
+	float X = radius * cos(latitude) * cos(longitude);
+	float Y = radius * cos(latitude) * sin(longitude);
+	float Z = radius * sin(latitude);
+
+	glPushMatrix();
+	glBegin(GL_LINES);
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(X*1.5, Y*1.5, Z*1.5);
+	glEnd();
+	glPopMatrix();
+}
+
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
@@ -319,6 +337,8 @@ void display(void) {
 	light1->display();
 	light2->display();
 	material1->display();
+
+	sphericalCoordinates();
 
 	glutSwapBuffers();
 }
