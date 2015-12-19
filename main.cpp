@@ -25,14 +25,14 @@ ShapeControl shapeControl = SCENE;
 
 /* CAMERA */
 Camera *cam1;
-PVector3f camPosition(0.0f, 0.0f, 17.0f);
-PVector3f camRotation(-29.0f, 0.0f, 0.0f);
+PVector3f camPosition(0.0f, 0.0f, 25.0f);
+PVector3f camRotation(-15.0f, 0.0f, 0.0f);
 
 /* LIGHTING */
 Light *light0, *light1, *light2;
-float light_pos0 [3] = {0, 3, 7};
-float light_pos1 [3] = {1.0, 6.0, 7};
-float light_pos2 [3] = {-1.0, 6.0, 7};
+float light_pos0 [3] = {0, 3, 25.0};
+float light_pos1 [3] = {1.0, 6.0, 25.0};
+float light_pos2 [3] = {-1.0, 6.0, 25.0};
 float amb[4]  = {1, 1, 1, 1};
 float diff[4] = {0.2f, 0.2f, 0.2f, 1};
 float spec[4] = {1, 1, 1, 1};
@@ -337,7 +337,7 @@ void reshape(GLsizei width, GLsizei height) {
 void update(int value) {
 	earth->rotateZ();
 	glutPostRedisplay();
-	glutTimerFunc(40, update, 0);
+	glutTimerFunc(35, update, 0);
 }
 
 /* main function - program entry point */
