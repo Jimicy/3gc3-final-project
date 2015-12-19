@@ -12,9 +12,9 @@ Globe::Globe() {
 	// diff = {0.5, 0.5, 0.5, 0.2};
 }
 
-void Globe::rotateX() { rotation[0] += 10; }
-void Globe::rotateY() { rotation[1] += 10; }
-void Globe::rotateZ() { rotation[2] += 10; }
+void Globe::rotateX() { rotation[0] += 1; }
+void Globe::rotateY() { rotation[1] += 1; }
+void Globe::rotateZ() { rotation[2] += 1; }
 
 void Globe::draw() {
 	glPushMatrix();
