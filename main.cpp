@@ -243,9 +243,8 @@ void moveLight(int lightID, LightMovement movement) {
 //callbacks
 void keyboard(unsigned char key, int x, int y)
 {
-	/*Esc to exit the program*/
+	/* ESCAPE CONTROL*/
 	if(key == 27 || key == 'q') exit(0);
-
 	/*CAMERA CONTROL*/
 	else if (key == 'w') cam1->moveCamera(CAMERA_FORWARD);
 	else if (key == 'a') cam1->moveCamera(CAMERA_LEFT);
@@ -253,22 +252,16 @@ void keyboard(unsigned char key, int x, int y)
 	else if (key == 'd') cam1->moveCamera(CAMERA_RIGHT);
 	else if (key == 32)  cam1->moveCamera(CAMERA_UP);
 	else if (key == 'c') cam1->moveCamera(CAMERA_DOWN);
-	/* Move Lights */
+	/* LIGHT CONTROL */
 	else if (key == 'f') moveLight(lightControl, LIGHT_LEFT);
 	else if (key == 'h') moveLight(lightControl, LIGHT_RIGHT);
 	else if (key == 't') moveLight(lightControl, LIGHT_UP);
 	else if (key == 'g') moveLight(lightControl, LIGHT_DOWN);
-
-	/*Z to toggle between moving light sources */
+	/* TOGGLE LIGHT SOURCE */
 	else if (key == 'z') {
-		switch(lightControl) {
-			case LIGHT0: lightControl = LIGHT1; break;
-			case LIGHT1: lightControl = LIGHT0; break;
-			default: break;
-		}
+		lightControl = (lightControl == LIGHT0) ? LIGHT1 : LIGHT0;
 	}
 
-	
 	glutPostRedisplay();
 }
 
