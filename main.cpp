@@ -13,6 +13,7 @@
 #include "FreeImage.h"
 #include "ray.h"
 #include "Camera.h"
+#include "Light.h"
 
 
 enum LightControl {LIGHT0, LIGHT1};
@@ -20,9 +21,14 @@ LightControl lightControl = LIGHT0;
 enum ShapeControl {SHAPES, SCENE};
 ShapeControl shapeControl = SCENE;
 
+
+/* CAMERA */
 Camera *cam1;
+PVector3f camPosition(0.0f, 0.0f, 15.0f);
+PVector3f camRotation(-11.0f, 40.0f, 0.0f);
 
 /* LIGHTING */
+Light *light0, *light1;
 float light_pos0 [3] = {0, 3, 3};
 float amb0[4]  = {1, 1, 1, 1};
 float diff0[4] = {0.2f, 0.2f, 0.2f, 1};
@@ -210,24 +216,6 @@ void initGraph() {
 // 	glutPostRedisplay();
 // }
 
-void drawLight()
-{
-	glDisable(GL_LIGHTING);
-	glColor4f(1.0f, 0.0f, 1.0f, 1.0F);
-
-	glPushMatrix();
-	glTranslatef(light_pos0[0], light_pos0[1], light_pos0[2]);
-	glutSolidSphere(0.1, 12, 10);
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(light_pos1[0], light_pos1[1], light_pos1[2]);
-	glutSolidSphere(0.1, 12, 10);
-	glPopMatrix();
-
-	glEnable(GL_LIGHTING);
-}
-
 // /* Moves shape along a vector */
 // void moveShape(PVector3f dirVector, float amt)
 // {
@@ -245,6 +233,13 @@ void drawLight()
 // 	parent->describeNode();
 // }
 
+void moveLight(int lightID, LightMovement movement) {
+	switch (lightID) {
+		case 0: light0->moveLight(movement); break;
+		case 1: light1->moveLight(movement); break;
+	}
+}
+
 //callbacks
 void keyboard(unsigned char key, int x, int y)
 {
@@ -252,82 +247,38 @@ void keyboard(unsigned char key, int x, int y)
 	if(key == 27 || key == 'q') exit(0);
 
 	/*CAMERA CONTROL*/
-	else if (key == 'w') cam1->moveCamera(FORWARD);
-	else if (key == 'a') cam1->moveCamera(LEFT);
-	else if (key == 's') cam1->moveCamera(BACK);
-	else if (key == 'd') cam1->moveCamera(RIGHT);
-	else if (key == 32)  cam1->moveCamera(UP);
-	else if (key == 'c') cam1->moveCamera(DOWN);
+	else if (key == 'w') cam1->moveCamera(CAMERA_FORWARD);
+	else if (key == 'a') cam1->moveCamera(CAMERA_LEFT);
+	else if (key == 's') cam1->moveCamera(CAMERA_BACK);
+	else if (key == 'd') cam1->moveCamera(CAMERA_RIGHT);
+	else if (key == 32)  cam1->moveCamera(CAMERA_UP);
+	else if (key == 'c') cam1->moveCamera(CAMERA_DOWN);
+	/* Move Lights */
+	else if (key == 'f') moveLight(lightControl, LIGHT_LEFT);
+	else if (key == 'h') moveLight(lightControl, LIGHT_RIGHT);
+	else if (key == 't') moveLight(lightControl, LIGHT_UP);
+	else if (key == 'g') moveLight(lightControl, LIGHT_DOWN);
 
 	/*Z to toggle between moving light sources */
-	else if (key == 'z')
-	{
-		switch(lightControl)
-		{
-			case LIGHT0:
-				lightControl = LIGHT1;
-				break;
-			case LIGHT1:
-				lightControl = LIGHT0;
-				break;
-			default:
-				break;
+	else if (key == 'z') {
+		switch(lightControl) {
+			case LIGHT0: lightControl = LIGHT1; break;
+			case LIGHT1: lightControl = LIGHT0; break;
+			default: break;
 		}
 	}
 
-	/* Move Lights */
-	else if (key == 'f')
-	{
-		if (lightControl == LIGHT0)
-		{
-			light_pos0[0]--;
-		} else if (lightControl == LIGHT1)
-		{
-			light_pos1[0]--;
-		}
-	} else if (key == 'h')
-	{
-		if (lightControl == LIGHT0)
-		{
-			light_pos0[0]++;
-		} else if (lightControl == LIGHT1)
-		{
-			light_pos1[0]++;
-		}
-	} else if (key == 't')
-	{
-		if (lightControl == LIGHT0)
-		{
-			light_pos0[2]++;
-			light_pos0[0]++;
-		} else if (lightControl == LIGHT1)
-		{
-			light_pos1[2]++;
-			light_pos1[0]++;
-		}
-	} else if (key == 'g')
-	{
-		if (lightControl == LIGHT0)
-		{
-			light_pos0[2]--;
-			light_pos0[0]--;
-		} else if (lightControl == LIGHT1)
-		{
-			light_pos1[2]--;
-			light_pos1[0]--;
-		}
-	}
-
+	
 	glutPostRedisplay();
 }
 
 void special(int key, int x, int y) {
 
 	switch(key){
-     	case GLUT_KEY_LEFT:  cam1->rotateCamera(LEFT); break;
-    	case GLUT_KEY_RIGHT: cam1->rotateCamera(RIGHT); break;
-    	case GLUT_KEY_UP:    cam1->rotateCamera(UP); break;
-    	case GLUT_KEY_DOWN:  cam1->rotateCamera(DOWN); break;
+     	case GLUT_KEY_LEFT:  cam1->rotateCamera(CAMERA_LEFT); break;
+    	case GLUT_KEY_RIGHT: cam1->rotateCamera(CAMERA_RIGHT); break;
+    	case GLUT_KEY_UP:    cam1->rotateCamera(CAMERA_UP); break;
+    	case GLUT_KEY_DOWN:  cam1->rotateCamera(CAMERA_DOWN); break;
  	}
 	glutPostRedisplay();
 }
@@ -343,12 +294,13 @@ void init()
 {
 	 /* LIGHTING */
 	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
+	// glEnable(GL_LIGHT0);
+	// glEnable(GL_LIGHT1);
 
-	PVector3f camPosition(0.0f, 0.0f, 15.0f);
-	PVector3f camRotation(-11.0f, 40.0f, 0.0f);
 	cam1 = new Camera(camPosition, camRotation);
+
+	light0 = new Light(GL_LIGHT0, light_pos0, amb0, diff0, spec0);
+	light1 = new Light(GL_LIGHT1, light_pos1, amb1, diff1, spec1);
 
 	GLuint id = 1;
 
@@ -442,26 +394,17 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	/*6 DOF camera controls*/
+
 	cam1->look();
 
-	glLightfv(GL_LIGHT0, GL_POSITION, light_pos0);
-  glLightfv(GL_LIGHT0, GL_AMBIENT, amb0);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, diff0);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, spec0);
-
-	glLightfv(GL_LIGHT1, GL_POSITION, light_pos1);
-  glLightfv(GL_LIGHT1, GL_AMBIENT, amb1);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, diff1);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, spec1);
+	light0->display();
+	light1->display();
 
 	 /* MATERIALS */
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,  m_amb);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  m_diff);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  m_spec);
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS,  shiny);
-
-	drawLight();
 
 	drawGlobe();
 
