@@ -308,28 +308,6 @@ void init() {
 	initGraph();
 }
 
-void Square (void) {
-  glPushMatrix ();
-
-	glBegin(GL_LINES);
-		glVertex3f(0.0, 0.0, 0.0);
-		glVertex3f(3.0, 0.0, 0.0);
-	glEnd();
-
-	glBegin(GL_LINES);
-		glVertex3f(0.0, 0.0, 0.0);
-		glVertex3f(0.0, 3.0, 0.0);
-	glEnd();
-
-	glBegin(GL_LINES);
-		glVertex3f(0.0, 0.0, 0.0);
-		glVertex3f(0.0, 0.0, 3.0);
-	glEnd();
-	glPopMatrix ();
-}
-
-
-
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
@@ -341,8 +319,6 @@ void display(void) {
 	light1->display();
 	light2->display();
 	material1->display();
-
-	Square();
 
 	glutSwapBuffers();
 }
@@ -358,6 +334,12 @@ void reshape(GLsizei width, GLsizei height) {
 	gluPerspective(45.0, aspect, 1.0f, 100.0f);
 }
 
+void update(int value) {
+	earth->rotateZ();
+	glutPostRedisplay();
+	glutTimerFunc(40, update, 0);
+}
+
 /* main function - program entry point */
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
@@ -368,6 +350,7 @@ int main(int argc, char** argv) {
 
 	glutCreateWindow("Global Data Visualization");
 
+	glutTimerFunc(1000, update, 0);
 	glutKeyboardFunc(keyboard);
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
