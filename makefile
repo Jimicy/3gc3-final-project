@@ -11,7 +11,6 @@ CC=g++
 EXEEXT=
 RM=rm -f
 MATH_LIB = PMath
-FI=libfreeimage.a
 
 # Windows (cygwin)
 ifeq "$(OS)" "Windows_NT"
@@ -24,6 +23,7 @@ else
 	OS := $(shell uname)
 	ifeq ($(OS), Darwin)
     LDFLAGS = -framework Carbon -framework OpenGL -framework GLUT
+    FI=libfreeimage-mac.a
 	endif
 endif
 
