@@ -1,8 +1,9 @@
 #include "Header.h"
 #include "Globe.h"
-#include "BoundedBox.h"
+#include "BoundedSphere.h"
 #include "FreeImage.h"
 #include <string.h>
+#define PI 3.14159265
 
 Globe::Globe() {
 	loadTexture();
@@ -32,22 +33,34 @@ Vector3D Globe::latLongtoVector3D(float latitude, float longitude) {
 }
 
 void Globe::drawMessages() {
+	std::vector<BoundedSphere> shapes;
 	for (int i=0; i<2; i++){
 		Vector3D point = latLongtoVector3D(messagesLatAndLong[i][0], messagesLatAndLong[i][1]);
+		Vector3D p = point;
 
-		boundedBoxes.clear();
-		double boxMin[] = {0.0, 0.0, 0.0};
-		double boxMax[] = {(point.x*1.5+0.2)*cos(rotation[2])+(point.z*1.5)*sin(rotation[2]),
-											 point.y*1.5+0.2,
-											 (point.z*1.5)*cos(rotation[2])+(point.x*1.5+0.2)*sin(rotation[2])};
-		BoundedBox box = BoundedBox(boxMin, boxMax, i);
-		boundedBoxes.push_back(box);
+/*		//rotation about x axis
+		p.x = point.x;
+		p.y = point.y * cos(rotation[0]*PI/180.0) - point.z * sin(rotation[0]*PI/180.0);
+		p.z = point.y * sin(rotation[0]*PI/180.0) + point.z * cos(rotation[0]*PI/180.0);
+
+		//rotation about y axis
+		p.x = p.x * cos(rotation[1]*PI/180.0) + p.z * sin(rotation[1]*PI/180.0);
+		p.y = p.y;
+		p.z = p.z * cos(rotation[1]*PI/180.0) - p.x * sin(rotation[1]*PI/180.0);*/
+
+		//rotation about z axis
+		p.x = p.x * cos(rotation[2]*PI/180.0) - p.y * sin(rotation[2]*PI/180.0);
+		p.y = p.x * sin(rotation[2]*PI/180.0) + p.y * cos(rotation[2]*PI/180.0);
+		p.z = p.z;
+
+		BoundedSphere sphere = BoundedSphere(p, i, 1);
+		shapes.push_back(sphere);
 
 		glPushMatrix(); //sets orgin as draw point
 			glTranslatef(point.x, point.y, point.z);
 			glDisable(GL_LIGHTING);
 			glColor3f(0.5f, 1.0f, 0.0f);
-			glutSolidSphere(0.1, 100, 100);
+			glutSolidSphere(0.3, 100, 100);
 			glEnable(GL_LIGHTING);
 		glPopMatrix(); //resets orgin for next object
 
@@ -59,6 +72,11 @@ void Globe::drawMessages() {
 		glEnd();
 		glPopMatrix();
 	}
+	boundedSpheres = shapes;
+}
+
+std::vector<BoundedSphere> Globe::getBoundedSpheres(){
+	return boundedSpheres;
 }
 
 void Globe::draw() {
@@ -66,8 +84,8 @@ void Globe::draw() {
 	// Earth Sphere
 	glPushMatrix();
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glRotatef(rotation[0],1.0,0.0,0.0);
-		glRotatef(rotation[1],0.0,1.0,0.0);
+		// glRotatef(rotation[0],1.0,0.0,0.0);
+		// glRotatef(rotation[1],0.0,1.0,0.0);
 		glRotatef(rotation[2],0.0,0.0,1.0);
 		glCallList(mysphereID);
 		//3D lines on globe representing inspirational messages from around the world

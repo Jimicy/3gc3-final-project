@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "PMath/PVector.h"
-#include "BoundedBox.h"
+#include "BoundedSphere.h"
 #include "FreeImage.h"
 #include "ray.h"
 #include "Camera.h"
@@ -52,76 +52,34 @@ std::string messages[] = {"The journey of a thousand miles begins with one step.
 													"You must be the change you wish to see in the world. - Gandhi"};
 int selectedMessageIndex; //Selected message by mouse
 
-/**
- * This method returns an array of intersection point. If the ray intersects the bounding box then
- * return the closest intersection point. If no intersection return empty array.
- */
-int checkCollision(std::vector<BoundedBox> shapes, Ray ray)
+double start[] ={0,0,0}, end[]={1,1,1};
+
+int checkCollision(BoundedSphere boundedSphere, Ray ray)
 {
-	double smallestTmin = 100000;
-	int selectedShape = -1;
+	Vector3D point = boundedSphere.point;
+	float radius = boundedSphere.radius;
+	int selectedMessageId = -1;
+    float dist = sqrt(pow(point.x-ray.orig.x,2)+pow(point.y-ray.orig.y,2)+pow(point.z-ray.orig.z,2));
+    bool hello;
 
-	for (int i=0; i<shapes.size(); i++){
-		BoundedBox box = shapes[i];
+    hello = false;
+    for(int i = 0; i<1000; i++){           //It will check for collisions at one point and advance to the next until it hits an object
 
-		//Get the bounding points of our box
-		Vector3D min = box.min; //p1
-		Vector3D max = box.max; //p2
+        if(dist > radius){
 
-	 	double tmin = (min.x - ray.orig.x) / ray.dir.x;
-		double tmax = (max.x - ray.orig.x) / ray.dir.x;
-
-		if (tmin > tmax){
-			std::swap(tmin, tmax);
-		}
-
-		double tymin = (min.y - ray.orig.y) / ray.dir.y;
-		double tymax = (max.y - ray.orig.y) / ray.dir.y;
-
-		if (tymin > tymax){
-			std::swap(tymin, tymax);
-		}
-
-		if ((tmin > tymax) || (tymin > tmax)) {
-			continue; // no intersection point continue to next bounded box
-		}
-
-		if (tymin > tmin) {
-			tmin = tymin;
-		}
-
-		if (tymax < tmax){
-			tmax = tymax;
-		}
-
-		double tzmin = (min.z - ray.orig.z) / ray.dir.z;
-		double tzmax = (max.z - ray.orig.z) / ray.dir.z;
-
-		if (tzmin > tzmax){
-			std::swap(tzmin, tzmax);
-		}
-
-		if ((tmin > tzmax) || (tzmin > tmax)){
-			continue; // no intersection point continue to next bounded box
-		}
-
-		if (tzmin > tmin){
-			tmin = tzmin;
-		}
-
-		if (tzmax < tmax){
-			tmax = tzmax;
-		}
-
-		//There is an intersection point. Now we want to check if it is the closest intersection point to our ray.
-		//If so then remove the previous intersection point and set it to this new intersection point.
-		if (tmin < smallestTmin){
-			smallestTmin = tmin;
-			selectedShape = box.shapeId;
-		}
-	}
-	//true there is an intersection. return the intersect point in array.
-	return selectedShape;
+            ray.orig.x += ray.dir.x;
+            ray.orig.y += ray.dir.y;
+            ray.orig.z += ray.dir.z;
+            dist = sqrt(pow(point.x-ray.orig.x,2)+pow(point.y-ray.orig.y,2)+pow(point.z-ray.orig.z,2));
+            // printf("%f\n",dist);
+        }
+        else if(dist<=radius){ //If the dist between current ray position and object position is less than degree then its a hit
+            selectedMessageId = boundedSphere.messageId;
+            // printf("Intersect shape: %i\n", boundedSphere.messageId);
+            return selectedMessageId;
+        }
+    }
+    return selectedMessageId;
 }
 
 void Intersect(int x, int y)
@@ -139,8 +97,8 @@ void Intersect(int x, int y)
 	double winX = (double)x;
 	double winY = viewport[3] - (double)y;
 
-	double start[] = {0,0,0};
-	double end[] = {1,1,1};
+	// double start[] = {0,0,0};
+	// double end[] = {1,1,1};
 
 	// get point on the 'near' plane (third param is set to 0.0)
 	gluUnProject(winX, winY, 0.0, matModelView, matProjection,
@@ -153,8 +111,23 @@ void Intersect(int x, int y)
 	//create new ray with the origin as the mouse click start position
 	Ray ray = Ray(start, end);
 
-	selectedMessageIndex = checkCollision(earth->boundedBoxes, ray);
-	printf("selectedMessageIndex: %i\n", selectedMessageIndex);
+	std::vector<BoundedSphere> shapes = earth->getBoundedSpheres();
+	BoundedSphere b1 = shapes[0];
+	BoundedSphere b2 = shapes[1];
+
+	printf("In Main id: %i x: %f, y: %f z: %f \n", b1.messageId, b1.point.x, b1.point.y, b1.point.z);
+	printf("In Main id: %i x: %f, y: %f z: %f \n", b2.messageId, b2.point.x, b2.point.y, b2.point.z);
+
+	selectedMessageIndex = -1;
+	for (int index; index < shapes.size(); index++) {
+		int messageIndex = checkCollision(shapes[index], ray);
+		if (messageIndex!=-1) {
+			selectedMessageIndex = messageIndex;
+		}
+	}
+
+	printf("selectedMessageIndex: %i \n", selectedMessageIndex);
+
 	glutPostRedisplay();
 }
 
@@ -266,6 +239,12 @@ void display(void) {
 	light2->display();
 	material1->display();
 
+		glBegin(GL_LINES);
+		glColor3f(1,0,0);
+		glVertex3f(start[0], start[1], start[2]);
+		glVertex3f(end[0], end[1], end[2]);
+	glEnd();
+
 	//2D Raster Text GUI for our message
   setOrthographicProjection();
   glPushMatrix();
@@ -274,7 +253,9 @@ void display(void) {
 
   glDisable(GL_LIGHTING);
   glColor3f(0.7, 0.7, 0.7);
-  renderBitmapString(10,10, messages[1].c_str());
+  if (selectedMessageIndex!=-1) {
+  	renderBitmapString(10,10, messages[selectedMessageIndex].c_str());
+  }
   glEnable(GL_LIGHTING);
 
   glPopMatrix();
