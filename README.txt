@@ -1,9 +1,26 @@
+Group members:
 Name: Yi Wang
 Student Number: 1317934
+MacID: wang638
 
-Name: Philip Habib
-Student Number: 1310455
+Name: Haris Khan
+Student Number: 1413511
+MacID: khanh6
 
-##We implemented the extra features
-1. Camera Control
-  - Implement a simple camera model to allow the user to fly around the scene and view the scene from different points.
+Name: Kurt DaCosta
+StudentNumber: 1156053
+MacID: dacostk
+
+A 3D globe with inspirational messages from around the world mapped to different parts of the 3D globe.
+You can select a sphere representing the message at a specific latitude and longitude and it will display the inspirational message and who is was by as text on our 2D TEXT GUI.
+
+We implemented:
+lighting 5%
+textures 10%
+alpha blending 5%
+Picking 10%
+    + Being able to select the green spheres on the map
+non-geometric primitives (bitmaps, pixel maps) [10%]
+    + 2D GUI rasterized Text
+    + glutBitmapCharacter
+Our own idea ~5%
