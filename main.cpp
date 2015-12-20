@@ -374,6 +374,23 @@ void update(int value) {
 	glutTimerFunc(35, update, 0);
 }
 
+void printStartMenu()
+{
+  printf("\033[H\033[J");
+  printf("==================================================\n");
+  printf("==========  Yi (Jimmy), Haris, Kurt's   ==========\n");
+  printf("===Inspirational Messages From Around The World===\n");
+  printf("==================================================\n");
+  printf("\n");
+  printf("------------- CONTROLS ----------- \n");
+  printf("WASD to move up right down and left\n");
+  printf("Arrow keys to rotate map\n");
+  printf("Spacebar to move up, c to crouch (move down)\n");
+  printf("MOVE LIGHTS: TFGH to move LIGHT up right down and left\n");
+  printf("z - toggle which light source you wish to move\n");
+  printf("\n");
+}
+
 /* main function - program entry point */
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
@@ -392,7 +409,7 @@ int main(int argc, char** argv) {
 	glutMouseFunc(mouse);
 
 	init();
-
+	printStartMenu();
 	glutMainLoop();
 	return(0);
 }
