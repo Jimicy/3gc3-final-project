@@ -1,5 +1,6 @@
 #include "Header.h"
 #include "Globe.h"
+#include "BoundedBox.h"
 #include "FreeImage.h"
 #include <string.h>
 
@@ -8,9 +9,8 @@ Globe::Globe() {
 	makeSphere();
 
 	rotation[0] = -90.0;
-	rotation[1] = 23.0; 
+	rotation[1] = 23.0;
 	rotation[2] = 0.0;
-	
 
 	// diff = {0.5, 0.5, 0.5, 0.2};
 }
@@ -18,6 +18,48 @@ Globe::Globe() {
 void Globe::rotateX() { rotation[0] += 0.5; }
 void Globe::rotateY() { rotation[1] += 0.5; }
 void Globe::rotateZ() { rotation[2] += 0.5; }
+
+Vector3D Globe::latLongtoVector3D(float latitude, float longitude) {
+	/*LATITUDE LONGITUDE SPHERICAL COORDINATE MAPPING*/
+	float radius = 5.0;
+
+	Vector3D point;
+	point.x = radius * cos(latitude) * cos(longitude);
+	point.y = radius * cos(latitude) * sin(longitude);
+	point.z = radius * sin(latitude);
+
+	return point;
+}
+
+void Globe::drawMessages() {
+	for (int i=0; i<2; i++){
+		Vector3D point = latLongtoVector3D(messagesLatAndLong[i][0], messagesLatAndLong[i][1]);
+
+		boundedBoxes.clear();
+		double boxMin[] = {0.0, 0.0, 0.0};
+		double boxMax[] = {(point.x*1.5+0.2)*cos(rotation[2])+(point.z*1.5)*sin(rotation[2]),
+											 point.y*1.5+0.2,
+											 (point.z*1.5)*cos(rotation[2])+(point.x*1.5+0.2)*sin(rotation[2])};
+		BoundedBox box = BoundedBox(boxMin, boxMax, i);
+		boundedBoxes.push_back(box);
+
+		glPushMatrix(); //sets orgin as draw point
+			glTranslatef(point.x, point.y, point.z);
+			glDisable(GL_LIGHTING);
+			glColor3f(0.5f, 1.0f, 0.0f);
+			glutSolidSphere(0.1, 100, 100);
+			glEnable(GL_LIGHTING);
+		glPopMatrix(); //resets orgin for next object
+
+		glLineWidth(2.0);
+		glPushMatrix();
+		glBegin(GL_LINES);
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(point.x*1.5, point.y*1.5, point.z*1.5);
+		glEnd();
+		glPopMatrix();
+	}
+}
 
 void Globe::draw() {
 
@@ -28,10 +70,11 @@ void Globe::draw() {
 		glRotatef(rotation[1],0.0,1.0,0.0);
 		glRotatef(rotation[2],0.0,0.0,1.0);
 		glCallList(mysphereID);
+		//3D lines on globe representing inspirational messages from around the world
+		drawMessages();
 	glPopMatrix();
 
 	glPushMatrix();
-		glLineWidth(2.0);
 		float linePoint = 7.5;
 
 		// Earth Orbital Axis
@@ -43,7 +86,7 @@ void Globe::draw() {
 		glEnd();
 
 		// Earth Rotation Axis
-		glRotatef(-23.0, 0.0, 0.0, 1.0); 
+		glRotatef(-23.0, 0.0, 0.0, 1.0);
 		glBegin(GL_LINES);
 			glVertex3f(0.0, linePoint, 0.0);
 			glVertex3f(0.0, -linePoint, 0.0);

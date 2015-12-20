@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "structs.h"
 #include "PMath/PVector.h"
 #include "BoundedBox.h"
 #include "FreeImage.h"
@@ -51,9 +50,7 @@ Globe *earth;
 /* Inspirational Messages */
 std::string messages[] = {"The journey of a thousand miles begins with one step. - Lao Tzu",
 													"You must be the change you wish to see in the world. - Gandhi"};
-float latAndLong[2][2] = {{25.9, 118.3},{21.0, 78.0}};
 int selectedMessageIndex; //Selected message by mouse
-std::vector<BoundedBox> boundedBoxes; //Bounded boxes for our message for ray picking
 
 /**
  * This method returns an array of intersection point. If the ray intersects the bounding box then
@@ -129,7 +126,6 @@ int checkCollision(std::vector<BoundedBox> shapes, Ray ray)
 
 void Intersect(int x, int y)
 {
-
 	//allocate matricies memory
 	double matModelView[16], matProjection[16];
 	int viewport[4];
@@ -157,25 +153,8 @@ void Intersect(int x, int y)
 	//create new ray with the origin as the mouse click start position
 	Ray ray = Ray(start, end);
 
-	//boxes are defined by 2 points p1, p2
-	double box2Min[] = {-2.5,-2.5,-2.5};
-	double box2Max[] = {2.5,2.5,2.5};
-	BoundedBox box2 = BoundedBox(box2Min, box2Max, 1);
-
-	double box1Min[] = {-4.5, -0.5, -0.5};
-	double box1Max[] = {-3.5, 0.5, 0.5};
-	BoundedBox box1 = BoundedBox(box1Min, box1Max, 2);
-
-	double box3Min[] = {-1.5,-1.5,-0.5};
-	double box3Max[] = {-0.5,-0.5,0.5};
-	BoundedBox box3 = BoundedBox(box3Min, box3Max, 3);
-
-	boundedBoxes.push_back(box1);
-	boundedBoxes.push_back(box2);
-	boundedBoxes.push_back(box3);
-
-	selectedMessageIndex = checkCollision(boundedBoxes, ray);
-
+	selectedMessageIndex = checkCollision(earth->boundedBoxes, ray);
+	printf("selectedMessageIndex: %i\n", selectedMessageIndex);
 	glutPostRedisplay();
 }
 
@@ -254,59 +233,6 @@ void init() {
   glBlendFunc(GL_ONE, GL_ONE);
 }
 
-void sphericalCoordinates() {
-	/*LATITUDE LONGITUDE SPHERICAL COORDINATE MAPPING*/
-	float latitude = 43.653226;
-	float longitude = -79.383184;
-	float radius = 5.0;
-
-	float X = radius * cos(latitude) * cos(longitude);
-	float Y = radius * cos(latitude) * sin(longitude);
-	float Z = radius * sin(latitude);
-
-	material2->display();
-
-/*	glPushMatrix();
-	glBegin(GL_LINES);
-		glVertex3f(0.0, 0.0, 0.0);
-		glVertex3f(X*1.5, Y*1.5, Z*1.5);
-	glEnd();
-	glPopMatrix();*/
-}
-
-Vector3D latLongtoVector3D(float latitude, float longitude) {
-	/*LATITUDE LONGITUDE SPHERICAL COORDINATE MAPPING*/
-	float radius = 5.0;
-
-	Vector3D point;
-	point.x = radius * cos(latitude) * cos(longitude);
-	point.y = radius * cos(latitude) * sin(longitude);
-	point.z = radius * sin(latitude);
-
-	return point;
-}
-
-void drawMessages() {
-	for (int i=0; i<sizeof(messages); i++){
-		Vector3D point = latLongtoVector3D(latAndLong[i][0], latAndLong[i][1]);
-		// boundedBoxes;
-		glPushMatrix(); //sets orgin as draw point
-			glTranslatef(point.x, point.y, point.z);
-			glDisable(GL_LIGHTING);
-			glColor3f(0.5f, 1.0f, 0.0f);
-			glutWireCube(0.1);
-			glEnable(GL_LIGHTING);
-		glPopMatrix(); //resets orgin for next object
-
-		glPushMatrix();
-		glBegin(GL_LINES);
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(point.x*1.5, point.y*1.5, point.z*1.5);
-		glEnd();
-		glPopMatrix();
-	}
-}
-
 void setOrthographicProjection() {
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -340,17 +266,17 @@ void display(void) {
 	light2->display();
 	material1->display();
 
-	sphericalCoordinates();
-
-	//3D lines on globe representing inspirational messages from around the world
-	drawMessages();
-
 	//2D Raster Text GUI for our message
   setOrthographicProjection();
   glPushMatrix();
   glLoadIdentity();
   renderBitmapString(10,30, "Inspirational messages from around the world");
+
+  glDisable(GL_LIGHTING);
+  glColor3f(0.7, 0.7, 0.7);
   renderBitmapString(10,10, messages[1].c_str());
+  glEnable(GL_LIGHTING);
+
   glPopMatrix();
   resetPerspectiveProjection();
 
