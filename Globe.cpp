@@ -30,7 +30,6 @@ void Globe::draw() {
 		glCallList(mysphereID);
 	glPopMatrix();
 
-
 	glPushMatrix();
 		glLineWidth(2.0);
 		float linePoint = 7.5;

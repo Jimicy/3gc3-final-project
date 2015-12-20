@@ -307,6 +307,27 @@ void drawMessages() {
 	}
 }
 
+void setOrthographicProjection() {
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0, 600, 0, 600);
+    glMatrixMode(GL_MODELVIEW);
+}
+void resetPerspectiveProjection() {
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
+
+void renderBitmapString(float x, float y,const char *string){
+    const char *c;
+    glRasterPos2f(x, y);
+    for (c=string; *c != '\0'; c++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+}
+
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
@@ -320,7 +341,18 @@ void display(void) {
 	material1->display();
 
 	sphericalCoordinates();
+
+	//3D lines on globe representing inspirational messages from around the world
 	drawMessages();
+
+	//2D Raster Text GUI for our message
+  setOrthographicProjection();
+  glPushMatrix();
+  glLoadIdentity();
+  renderBitmapString(10,30, "Inspirational messages from around the world");
+  renderBitmapString(10,10, messages[1].c_str());
+  glPopMatrix();
+  resetPerspectiveProjection();
 
 	glutSwapBuffers();
 }
