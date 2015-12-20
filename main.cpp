@@ -3,8 +3,6 @@
  */
 #include "Header.h"
 #include <stdio.h>
-#include <vector>
-#include <string>
 #include <stdlib.h>
 #include <math.h>
 #include "structs.h"
