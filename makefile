@@ -12,6 +12,9 @@ EXEEXT=
 RM=rm -f
 MATH_LIB = PMath
 
+# Linux machine
+FI=libfreeimage.a
+
 # Windows (cygwin)
 ifeq "$(OS)" "Windows_NT"
 	EXEEXT=.exe #on windows applications must have .exe extension
