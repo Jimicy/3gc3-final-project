@@ -42,14 +42,14 @@ void Globe::draw() {
 			glVertex3f(0.0, linePoint, 0.0);
 			glVertex3f(0.0, -linePoint, 0.0);
 		glEnd();
-		glDisable(GL_LINE_STIPPLE);
-		
+
 		// Earth Rotation Axis
 		glRotatef(-23.0, 0.0, 0.0, 1.0); 
 		glBegin(GL_LINES);
 			glVertex3f(0.0, linePoint, 0.0);
 			glVertex3f(0.0, -linePoint, 0.0);
 		glEnd();
+		glDisable(GL_LINE_STIPPLE);
 	glPopMatrix();
 
 	// glTranslatef(1,0,0);

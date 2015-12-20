@@ -1,8 +1,12 @@
 #include "BoundedBox.h"
 
-BoundedBox::BoundedBox(Vector3D p1, Vector3D p2, int id)
+BoundedBox::BoundedBox(double p1[], double p2[], int id)
 {
- 	min = p1;
-	max = p2;
-  	shapeId = id;
+  min.x = p1[0];
+  min.y = p1[1];
+  min.z = p1[2];
+  max.x = p2[0];
+  max.y = p2[1];
+  max.z = p2[2];
+  shapeId = id;
 }
