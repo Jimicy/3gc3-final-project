@@ -13,9 +13,15 @@
 #include "Light.h"
 #include "Material.h"
 #include "Globe.h"
+#include "Star.h"
 
 enum LightControl {LIGHT0, LIGHT1};
 LightControl lightControl = LIGHT0;
+
+
+/* STAR */
+const int num_stars = 700;
+Star *stars[num_stars];
 
 /* CAMERA */
 Camera *cam1;
@@ -179,6 +185,30 @@ void mouse(int button, int state, int x, int y) {
 	}
 }
 
+void drawStars() {
+	for (int i = 0; i < num_stars; i++)
+	{
+		Star *star = stars[i];
+		star->draw();
+	}
+}
+
+void generateStars(){
+	
+	// Generate Stars
+	for (int i = 0; i < num_stars; i++) {
+
+		// Generate Position;
+		float x, y, z;
+
+		x = rand() % (25-(-25) + 1) + (-25);
+		y = rand() % (25-(-25) + 1) + (-25);
+		z = rand() % (25-(-25) + 1) + (-25);
+
+		stars[i] = new Star(x, y, z);
+	}
+}
+
 void init() {
 	glEnable(GL_LIGHTING);
   glEnable(GL_CULL_FACE);
@@ -193,6 +223,7 @@ void init() {
 	material1 = new Material(shiny, m_amb, m_diff, m_spec);
 	material2 = new Material(shiny2, m_amb2, m_diff2, m_spec2);
 	earth = new Globe();
+	generateStars();
 
 	GLuint id = 1;
 
@@ -235,6 +266,7 @@ void display(void) {
 	light0->display();
 	light1->display();
 	light2->display();
+	drawStars();
 	material1->display();
 
 	//2D Raster Text GUI for our message
