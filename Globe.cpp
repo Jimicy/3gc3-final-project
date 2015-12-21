@@ -133,6 +133,7 @@ void Globe::makeSphere() {
 
 void Globe::loadTexture() {
 	// load Textures
+	// reference: stackoverflow
 	std::vector<std::string> files;
 	files.push_back("images/earth-hires-21.png");
 
