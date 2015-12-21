@@ -49,37 +49,38 @@ Globe *earth;
 
 /* Inspirational Messages */
 std::string messages[] = {"The journey of a thousand miles begins with one step. - Lao Tzu",
-													"You must be the change you wish to see in the world. - Gandhi"};
+													"You must be the change you wish to see in the world. - Gandhi",
+													"Success is going from failure to failure without losing your enthusiasm. - Winston Churchill",
+													"The final project for 3GC3 is due December 20th at Midnight - Thomas Gwosdz",
+													"PK thunder - Vicky Bilbily (3GC3)"};
 int selectedMessageIndex; //Selected message by mouse
 
-double start[] ={0,0,0}, end[]={1,1,1};
-
+/**
+ * [checkCollision check is the mouse click raycast intersects a bounded sphere]
+ * @param  boundedSphere [Bounded sphere to test for ray sphere intersection]
+ * @param  ray           [projected ray object to do calculations with intersection]
+ * @return               [an int representing the index of the message that is selected]
+ */
 int checkCollision(BoundedSphere boundedSphere, Ray ray)
 {
 	Vector3D point = boundedSphere.point;
 	float radius = boundedSphere.radius;
 	int selectedMessageId = -1;
-    float dist = sqrt(pow(point.x-ray.orig.x,2)+pow(point.y-ray.orig.y,2)+pow(point.z-ray.orig.z,2));
-    bool hello;
+  float dist = sqrt(pow(point.x-ray.orig.x,2)+pow(point.y-ray.orig.y,2)+pow(point.z-ray.orig.z,2));
 
-    hello = false;
-    for(int i = 0; i<1000; i++){           //It will check for collisions at one point and advance to the next until it hits an object
-
-        if(dist > radius){
-
-            ray.orig.x += ray.dir.x;
-            ray.orig.y += ray.dir.y;
-            ray.orig.z += ray.dir.z;
-            dist = sqrt(pow(point.x-ray.orig.x,2)+pow(point.y-ray.orig.y,2)+pow(point.z-ray.orig.z,2));
-            // printf("%f\n",dist);
-        }
-        else if(dist<=radius){ //If the dist between current ray position and object position is less than degree then its a hit
-            selectedMessageId = boundedSphere.messageId;
-            // printf("Intersect shape: %i\n", boundedSphere.messageId);
-            return selectedMessageId;
-        }
+  for(int i = 0; i<1000; i++){ //It will check for collisions at one point and advance to the next until it hits an object
+  	if(dist > radius){
+      ray.orig.x += ray.dir.x;
+      ray.orig.y += ray.dir.y;
+      ray.orig.z += ray.dir.z;
+      dist = sqrt(pow(point.x-ray.orig.x,2)+pow(point.y-ray.orig.y,2)+pow(point.z-ray.orig.z,2));
+ 		}
+    else if(dist<=radius){ //If the dist between current ray position and object position is less than degree then its a hit
+     selectedMessageId = boundedSphere.messageId;
+     return selectedMessageId;
     }
-    return selectedMessageId;
+  }
+  return selectedMessageId;
 }
 
 void Intersect(int x, int y)
@@ -97,8 +98,8 @@ void Intersect(int x, int y)
 	double winX = (double)x;
 	double winY = viewport[3] - (double)y;
 
-	// double start[] = {0,0,0};
-	// double end[] = {1,1,1};
+	double start[] = {0,0,0};
+	double end[] = {1,1,1};
 
 	// get point on the 'near' plane (third param is set to 0.0)
 	gluUnProject(winX, winY, 0.0, matModelView, matProjection,
@@ -111,14 +112,12 @@ void Intersect(int x, int y)
 	//create new ray with the origin as the mouse click start position
 	Ray ray = Ray(start, end);
 
-	std::vector<BoundedSphere> shapes = earth->getBoundedSpheres();
+	std::vector<BoundedSphere> shapes = earth->boundedSpheres;
 	BoundedSphere b1 = shapes[0];
 	BoundedSphere b2 = shapes[1];
 
-	printf("In Main id: %i x: %f, y: %f z: %f \n", b1.messageId, b1.point.x, b1.point.y, b1.point.z);
-	printf("In Main id: %i x: %f, y: %f z: %f \n", b2.messageId, b2.point.x, b2.point.y, b2.point.z);
-
 	selectedMessageIndex = -1;
+
 	for (int index; index < shapes.size(); index++) {
 		int messageIndex = checkCollision(shapes[index], ray);
 		if (messageIndex!=-1) {
@@ -126,8 +125,7 @@ void Intersect(int x, int y)
 		}
 	}
 
-	printf("selectedMessageIndex: %i \n", selectedMessageIndex);
-
+	earth->selectedMessageIndex = selectedMessageIndex;
 	glutPostRedisplay();
 }
 
@@ -210,7 +208,7 @@ void setOrthographicProjection() {
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
-    gluOrtho2D(0, 600, 0, 600);
+    gluOrtho2D(0, 800, 0, 800);
     glMatrixMode(GL_MODELVIEW);
 }
 void resetPerspectiveProjection() {
@@ -238,12 +236,6 @@ void display(void) {
 	light1->display();
 	light2->display();
 	material1->display();
-
-		glBegin(GL_LINES);
-		glColor3f(1,0,0);
-		glVertex3f(start[0], start[1], start[2]);
-		glVertex3f(end[0], end[1], end[2]);
-	glEnd();
 
 	//2D Raster Text GUI for our message
   setOrthographicProjection();
@@ -290,6 +282,7 @@ void printStartMenu()
   printf("==================================================\n");
   printf("\n");
   printf("------------- CONTROLS ----------- \n");
+  printf("Click on the green spheres to select a inspiration quote\n");
   printf("WASD to move up right down and left\n");
   printf("Arrow keys to rotate map\n");
   printf("Spacebar to move up, c to crouch (move down)\n");
@@ -303,7 +296,7 @@ int main(int argc, char** argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
-	glutInitWindowSize(600, 600);
+	glutInitWindowSize(800, 800);
 	glutInitWindowPosition(50, 50);
 
 	glutCreateWindow("Global Data Visualization");

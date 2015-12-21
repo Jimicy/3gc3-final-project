@@ -9,8 +9,8 @@ Globe::Globe() {
 	loadTexture();
 	makeSphere();
 
-	rotation[0] = -90.0;
-	rotation[1] = 23.0;
+	rotation[0] = 0.0;
+	rotation[1] = 0.0;
 	rotation[2] = 0.0;
 
 	// diff = {0.5, 0.5, 0.5, 0.2};
@@ -34,19 +34,9 @@ Vector3D Globe::latLongtoVector3D(float latitude, float longitude) {
 
 void Globe::drawMessages() {
 	std::vector<BoundedSphere> shapes;
-	for (int i=0; i<2; i++){
+	for (int i=0; i<numOfMessages; i++){
 		Vector3D point = latLongtoVector3D(messagesLatAndLong[i][0], messagesLatAndLong[i][1]);
 		Vector3D p = point;
-
-/*		//rotation about x axis
-		p.x = point.x;
-		p.y = point.y * cos(rotation[0]*PI/180.0) - point.z * sin(rotation[0]*PI/180.0);
-		p.z = point.y * sin(rotation[0]*PI/180.0) + point.z * cos(rotation[0]*PI/180.0);
-
-		//rotation about y axis
-		p.x = p.x * cos(rotation[1]*PI/180.0) + p.z * sin(rotation[1]*PI/180.0);
-		p.y = p.y;
-		p.z = p.z * cos(rotation[1]*PI/180.0) - p.x * sin(rotation[1]*PI/180.0);*/
 
 		//rotation about z axis
 		p.x = p.x * cos(rotation[2]*PI/180.0) - p.y * sin(rotation[2]*PI/180.0);
@@ -56,14 +46,25 @@ void Globe::drawMessages() {
 		BoundedSphere sphere = BoundedSphere(p, i, 1);
 		shapes.push_back(sphere);
 
+		//Draw the anchor points for the messages.
 		glPushMatrix(); //sets orgin as draw point
 			glTranslatef(point.x, point.y, point.z);
 			glDisable(GL_LIGHTING);
-			glColor3f(0.5f, 1.0f, 0.0f);
+
+			//Color the sphere red if selected by the mouse
+			if (selectedMessageIndex==i){
+				glColor3f(1.0f, 0.0f, 0.0f);
+			}
+			//Else color the sphere green for unselected
+			else{
+				glColor3f(0.5f, 1.0f, 0.0f);
+			}
+
 			glutSolidSphere(0.3, 100, 100);
 			glEnable(GL_LIGHTING);
 		glPopMatrix(); //resets orgin for next object
 
+		//Draw lines coming out of the globe
 		glLineWidth(2.0);
 		glPushMatrix();
 		glBegin(GL_LINES);
@@ -75,18 +76,14 @@ void Globe::drawMessages() {
 	boundedSpheres = shapes;
 }
 
-std::vector<BoundedSphere> Globe::getBoundedSpheres(){
-	return boundedSpheres;
-}
-
 void Globe::draw() {
 
 	// Earth Sphere
 	glPushMatrix();
 		glBindTexture(GL_TEXTURE_2D, 0);
-		// glRotatef(rotation[0],1.0,0.0,0.0);
-		// glRotatef(rotation[1],0.0,1.0,0.0);
-		glRotatef(rotation[2],0.0,0.0,1.0);
+		glRotatef(rotation[0],1.0,0.0,0.0); //rotate about x-axis
+		glRotatef(rotation[1],0.0,1.0,0.0); //rotate about y-axis
+		glRotatef(rotation[2],0.0,0.0,1.0); //rotate about z-axis
 		glCallList(mysphereID);
 		//3D lines on globe representing inspirational messages from around the world
 		drawMessages();
